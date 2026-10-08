@@ -1,0 +1,105 @@
+{
+    "auditReportVersion": 2,
+    "metadata": {
+        "vulnerabilities": {
+            "critical": 0,
+            "high": 5,
+            "info": 0,
+            "low": 1,
+            "moderate": 1,
+            "total": 7
+        }
+    },
+    "vulnerabilities": {
+        "@docusaurus/utils": {
+            "name": "@docusaurus/utils",
+            "nodes": [
+                "node_modules/@docusaurus/utils"
+            ],
+            "severity": "high",
+            "via": [
+                "globby",
+                "micromatch"
+            ]
+        },
+        "braces": {
+            "name": "braces",
+            "nodes": [
+                "node_modules/braces"
+            ],
+            "severity": "high",
+            "via": [
+                {
+                    "dependency": "braces",
+                    "name": "braces",
+                    "range": "<=3.0.3",
+                    "severity": "high",
+                    "url": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm"
+                }
+            ]
+        },
+        "fast-glob": {
+            "name": "fast-glob",
+            "nodes": [
+                "node_modules/fast-glob"
+            ],
+            "severity": "high",
+            "via": [
+                "micromatch"
+            ]
+        },
+        "globby": {
+            "name": "globby",
+            "nodes": [
+                "node_modules/copy-webpack-plugin/node_modules/globby",
+                "node_modules/globby"
+            ],
+            "severity": "high",
+            "via": [
+                "fast-glob"
+            ]
+        },
+        "katex": {
+            "name": "katex",
+            "nodes": [
+                "node_modules/katex"
+            ],
+            "severity": "low",
+            "via": [
+                {
+                    "dependency": "katex",
+                    "name": "katex",
+                    "range": ">=0.11.0 <0.18.2",
+                    "severity": "low",
+                    "url": "https://github.com/advisories/GHSA-238p-pmpm-9mq7"
+                }
+            ]
+        },
+        "micromatch": {
+            "name": "micromatch",
+            "nodes": [
+                "node_modules/micromatch"
+            ],
+            "severity": "high",
+            "via": [
+                "braces"
+            ]
+        },
+        "sprintf-js": {
+            "name": "sprintf-js",
+            "nodes": [
+                "node_modules/sprintf-js"
+            ],
+            "severity": "moderate",
+            "via": [
+                {
+                    "dependency": "sprintf-js",
+                    "name": "sprintf-js",
+                    "range": "<=1.1.3",
+                    "severity": "moderate",
+                    "url": "https://github.com/advisories/GHSA-hp3w-g68c-fv3c"
+                }
+            ]
+        }
+    }
+}

@@ -1,0 +1,39 @@
+{
+    "lockfileVersion": 3,
+    "name": "fitfileviewer-docs",
+    "packages": {
+        "node_modules/@docusaurus/utils": {
+            "integrity": "sha512-xx0W3eav2uW1NRIpuHJWNwLTC15xPNjU4Uxi9NSnd3swYC96BE3vFiT93SD8s24kmAAWNwgZwfZ2fghGZ01Lcw==",
+            "version": "3.10.2"
+        },
+        "node_modules/braces": {
+            "integrity": "sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==",
+            "version": "3.0.3"
+        },
+        "node_modules/copy-webpack-plugin/node_modules/globby": {
+            "integrity": "sha512-Y1zNGV+pzQdh7H39l9zgB4PJqjRNqydvdYCDG4HFXM4XuvSaQQlEc91IU1yALL8gUTDomgBAfz3XJdmUS+oo0w==",
+            "version": "13.2.2"
+        },
+        "node_modules/fast-glob": {
+            "integrity": "sha512-7MptL8U0cqcFdzIzwOTHoilX9x5BrNqye7Z/LuC7kCMRio1EMSyqRK3BEAUD7sXRq4iT4AzTVuZdhgQ2TCvYLg==",
+            "version": "3.3.3"
+        },
+        "node_modules/globby": {
+            "integrity": "sha512-jhIXaOzy1sb8IyocaruWSn1TjmnBVs8Ayhcy83rmxNJ8q2uWKCAj3CnJY+KpGSXCueAPc0i05kVvVKtP1t9S3g==",
+            "version": "11.1.0"
+        },
+        "node_modules/katex": {
+            "integrity": "sha512-Eeo8Ys1doU1z+x8AZsPpQu+p/QcZBI5PeOo7QGQdy2x2m0MU/hYagBbGOmXwr5KVbEfVuWv9LpnQWeehogurjg==",
+            "version": "0.16.47"
+        },
+        "node_modules/micromatch": {
+            "integrity": "sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==",
+            "version": "4.0.8"
+        },
+        "node_modules/sprintf-js": {
+            "integrity": "sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==",
+            "version": "1.0.3"
+        }
+    },
+    "version": "1.0.0"
+}

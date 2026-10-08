@@ -633,6 +633,12 @@ const config = [
     {
         files: [".github/workflows/Build.yml"],
         rules: {
+            "github-actions/max-jobs-per-action": ["error", 5],
+        },
+    },
+    {
+        files: [".github/workflows/release-rehearsal.yml"],
+        rules: {
             "github-actions/max-jobs-per-action": ["error", 4],
         },
     },

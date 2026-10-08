@@ -1,14 +1,15 @@
 import { spawnSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import {
     accessSync,
     closeSync,
     constants,
     existsSync,
+    mkdirSync,
     mkdtempSync,
     openSync,
     readFileSync,
     readdirSync,
-    rmSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -20,7 +21,7 @@ import {
     rootReleaseDistAbsolutePath,
 } from "./lib/workspaces.mjs";
 
-const defaultStartupTimeoutMs = 10_000;
+const defaultStartupTimeoutMs = 60_000;
 const failureOutputMarkers = [
     "cannot find module",
     "err_file_not_found",
@@ -35,9 +36,26 @@ export function parseArgs(argv = []) {
     let executablePath;
     let releaseDistPath;
     let startupTimeoutMs;
+    let fixturePath;
 
     for (let index = 0; index < argv.length; index += 1) {
         const arg = argv[index];
+
+        if (arg === "--fixture") {
+            fixturePath = argv[index + 1];
+            if (!fixturePath || fixturePath.startsWith("-")) {
+                throw new Error("--fixture requires a value");
+            }
+            index += 1;
+            continue;
+        }
+        if (arg.startsWith("--fixture=")) {
+            fixturePath = arg.slice("--fixture=".length);
+            if (!fixturePath) {
+                throw new Error("--fixture must not be empty");
+            }
+            continue;
+        }
 
         if (arg === "--executable") {
             executablePath = argv[index + 1];
@@ -89,7 +107,7 @@ export function parseArgs(argv = []) {
         throw new Error(`Unknown argument: ${arg}`);
     }
 
-    return { executablePath, releaseDistPath, startupTimeoutMs };
+    return { executablePath, releaseDistPath, startupTimeoutMs, fixturePath };
 }
 
 export function getPackagedExecutableCandidates({
@@ -178,7 +196,7 @@ export function runPackagedSmoke(
     commandRunner = spawnSync,
     logger = console.log
 ) {
-    const { executablePath, releaseDistPath, startupTimeoutMs } =
+    const { executablePath, releaseDistPath, startupTimeoutMs, fixturePath } =
         parseArgs(argv);
     const configuredExecutablePath =
         executablePath ?? environment.FFV_PACKAGED_APP;
@@ -206,12 +224,26 @@ export function runPackagedSmoke(
         `[packaged-smoke] Launching ${resolvedExecutablePath} for ${timeoutMs}ms`
     );
 
-    const { outputFiles, result } = runWithCapturedOutput(
-        commandRunner,
-        resolvedExecutablePath,
-        timeoutMs,
-        environment
+    const resolvedFixturePath = path.resolve(
+        fixturePath ??
+            path.join(
+                repositoryRoot,
+                "fit-test-files",
+                "_Fenton_Michigan_Afternoon_Ride_5_27_miles.fit"
+            )
     );
+    if (!existsSync(resolvedFixturePath)) {
+        throw new Error(`Smoke FIT fixture not found: ${resolvedFixturePath}`);
+    }
+    const { outputFiles, result, captureDirectory, nonce } =
+        runWithCapturedOutput(
+            commandRunner,
+            resolvedExecutablePath,
+            timeoutMs,
+            environment,
+            resolvedFixturePath,
+            logger
+        );
     const output = [
         outputFiles.stdout,
         outputFiles.stderr,
@@ -222,17 +254,18 @@ export function runPackagedSmoke(
         .join("\n");
 
     const timedOut = result.error?.code === "ETIMEDOUT";
-    assertNoStartupFailureOutput(output, { timedOut });
+    assertNoStartupFailureOutput(output);
 
     if (result.error && !timedOut) {
         throw result.error;
     }
 
-    if (!timedOut && result.status !== null && result.status !== undefined) {
+    if (timedOut || result.signal || result.status !== 0) {
         throw new Error(
             [
-                `Packaged app exited before the ${timeoutMs}ms startup smoke window.`,
-                `Exit status: ${result.status}`,
+                `Packaged app did not complete its startup smoke within ${timeoutMs}ms.`,
+                `Exit status: ${result.status}; signal: ${result.signal ?? "none"}; timed out: ${timedOut}`,
+                `Diagnostics: ${captureDirectory}`,
                 output.trim() ? `Output:\n${output.trim()}` : "",
             ]
                 .filter(Boolean)
@@ -240,7 +273,54 @@ export function runPackagedSmoke(
         );
     }
 
-    logger("[packaged-smoke] Packaged app stayed alive without fatal output");
+    const reportPath = path.join(captureDirectory, "report.json");
+    if (!existsSync(reportPath)) {
+        throw new Error(
+            `Packaged app exited without a readiness report. Diagnostics: ${captureDirectory}`
+        );
+    }
+    const report = JSON.parse(readFileSync(reportPath, "utf8"));
+    if (
+        report === null ||
+        typeof report !== "object" ||
+        report.nonce !== nonce ||
+        report.status !== "passed" ||
+        report.visible !== true ||
+        report.activity === null ||
+        typeof report.activity !== "object" ||
+        !Number.isSafeInteger(report.activity.recordCount) ||
+        report.activity.recordCount < 1 ||
+        report.activity.appInitialized !== true ||
+        report.activity.mapReady !== true ||
+        !Number.isSafeInteger(report.activity.routeCount) ||
+        report.activity.routeCount < 1 ||
+        !Number.isSafeInteger(report.activity.sessionCount) ||
+        report.activity.sessionCount < 1
+    ) {
+        throw new Error(
+            `Packaged app returned an invalid readiness report. Diagnostics: ${captureDirectory}`
+        );
+    }
+    if (
+        environment.FFV_SMOKE_EXPECTED_ARCH &&
+        report.arch !== environment.FFV_SMOKE_EXPECTED_ARCH
+    ) {
+        throw new Error(
+            `Packaged app architecture ${report.arch} does not match ${environment.FFV_SMOKE_EXPECTED_ARCH}. Diagnostics: ${captureDirectory}`
+        );
+    }
+    if (
+        environment.FFV_SMOKE_EXPECTED_VERSION &&
+        report.version !== environment.FFV_SMOKE_EXPECTED_VERSION
+    ) {
+        throw new Error(
+            `Packaged app version ${report.version} does not match ${environment.FFV_SMOKE_EXPECTED_VERSION}. Diagnostics: ${captureDirectory}`
+        );
+    }
+    logger(
+        `[packaged-smoke] Verified visible renderer, preload IPC, FIT activity and rendered map: ${JSON.stringify(report)}`
+    );
+    logger(`[packaged-smoke] Diagnostics: ${captureDirectory}`);
     return 0;
 }
 
@@ -311,11 +391,19 @@ function runWithCapturedOutput(
     commandRunner,
     resolvedExecutablePath,
     timeoutMs,
-    environment
+    environment,
+    fixturePath,
+    logger
 ) {
+    const diagnosticsRoot = environment.FFV_SMOKE_DIAGNOSTICS_DIRECTORY
+        ? path.resolve(environment.FFV_SMOKE_DIAGNOSTICS_DIRECTORY)
+        : tmpdir();
+    mkdirSync(diagnosticsRoot, { recursive: true });
     const captureDirectory = mkdtempSync(
-        path.join(tmpdir(), "ffv-packaged-smoke-")
+        path.join(diagnosticsRoot, "ffv-packaged-smoke-")
     );
+    const nonce = randomUUID();
+    logger(`[packaged-smoke] Diagnostics: ${captureDirectory}`);
     const stderrPath = path.join(captureDirectory, "stderr.log"),
         stdoutPath = path.join(captureDirectory, "stdout.log");
     const stderrDescriptor = openSync(stderrPath, "w"),
@@ -324,13 +412,20 @@ function runWithCapturedOutput(
     try {
         const result = commandRunner(
             resolvedExecutablePath,
-            getPackagedLaunchArgs(environment),
+            [
+                ...getPackagedLaunchArgs(environment),
+                "--ffv-smoke-test",
+                `--user-data-dir=${path.join(captureDirectory, "user-data")}`,
+            ],
             {
                 cwd: repositoryRoot,
                 env: {
                     ...environment,
                     ELECTRON_IS_DEV: "0",
                     FFV_DISABLE_WEB_SECURITY: "false",
+                    FFV_SMOKE_DIRECTORY: captureDirectory,
+                    FFV_SMOKE_NONCE: nonce,
+                    FFV_SMOKE_FIXTURE: fixturePath,
                     NODE_ENV: "production",
                 },
                 encoding: "utf8",
@@ -345,6 +440,8 @@ function runWithCapturedOutput(
         );
 
         return {
+            captureDirectory,
+            nonce,
             outputFiles: {
                 stderr: readFileSync(stderrPath, "utf8"),
                 stdout: readFileSync(stdoutPath, "utf8"),
@@ -354,7 +451,6 @@ function runWithCapturedOutput(
     } finally {
         closeFileDescriptor(stdoutDescriptor);
         closeFileDescriptor(stderrDescriptor);
-        rmSync(captureDirectory, { force: true, recursive: true });
     }
 }
 
@@ -372,18 +468,10 @@ function closeFileDescriptor(descriptor) {
     }
 }
 
-function assertNoStartupFailureOutput(output, { timedOut = false } = {}) {
+function assertNoStartupFailureOutput(output) {
     const normalizedOutput = output.toLowerCase();
     for (const marker of failureOutputMarkers) {
         if (!normalizedOutput.includes(marker)) {
-            continue;
-        }
-
-        if (
-            marker === "error loading main html file" &&
-            timedOut &&
-            normalizedOutput.includes("window displayed successfully")
-        ) {
             continue;
         }
 
@@ -463,7 +551,7 @@ function parseStartupTimeoutMs(value) {
         throw new Error("--startup-timeout-ms requires a value");
     }
 
-    const parsed = Number.parseInt(value, 10);
+    const parsed = Number(value);
     if (!Number.isSafeInteger(parsed) || parsed < 1000) {
         throw new Error("--startup-timeout-ms must be an integer >= 1000");
     }

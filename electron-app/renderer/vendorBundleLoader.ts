@@ -34,6 +34,7 @@ import {
     isRegisteredLeafletRuntime,
     registerLeafletRuntime,
 } from "../utils/maps/core/leafletRuntime.js";
+import { registerMapLibreLayerFactory } from "../utils/maps/layers/mapLibreLayerRuntime.js";
 import {
     isArqueroRuntime,
     registerArqueroRuntime,
@@ -132,12 +133,14 @@ function registerMapRuntimePayload(
 ): boolean {
     if (
         payload === undefined ||
-        !isRegisteredLeafletRuntime(payload.leafletRuntime)
+        !isRegisteredLeafletRuntime(payload.leafletRuntime) ||
+        typeof payload.mapLibreLayerFactory !== "function"
     ) {
         return false;
     }
 
     registerLeafletRuntime(payload.leafletRuntime);
+    registerMapLibreLayerFactory(payload.mapLibreLayerFactory);
     return true;
 }
 

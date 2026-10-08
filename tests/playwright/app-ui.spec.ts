@@ -114,9 +114,13 @@ async function closeElectronApp(app: ElectronApplication): Promise<void> {
 
 function isTransientElectronEvaluateError(error: unknown): boolean {
     const message = error instanceof Error ? error.message : String(error);
-    return message.includes("Execution context was destroyed");
+    return (
+        message.includes("Execution context was destroyed") ||
+        message.includes("Resulting promise was garbage collected.")
+    );
 }
 
+// Callbacks must be idempotent: a lost CDP reply can follow completed execution.
 async function evaluateElectronAppWithRetry<T>(
     evaluate: () => Promise<T>
 ): Promise<T> {
@@ -584,6 +588,170 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
             }
         }
     });
+});
+
+test("renders offline MapLibre GeoJSON under the production file CSP after map recreation", async () => {
+    const profile = createElectronLaunchProfile();
+    // Hosted Linux runners need an explicit WebGL driver for this render test.
+    const graphicsArgs =
+        process.platform === "linux" && process.env.CI === "true"
+            ? ["--use-gl=angle", "--use-angle=swiftshader"]
+            : [];
+    const app = await electron.launch({
+        args: [...profile.args, ...graphicsArgs],
+        cwd: repositoryRoot,
+        env: createElectronLaunchEnv(),
+    });
+
+    try {
+        const mapPage = await app.firstWindow();
+        const errors: string[] = [];
+        const workerUrls: string[] = [];
+        mapPage.on("pageerror", (error) => errors.push(error.message));
+        mapPage.on("worker", (worker) => workerUrls.push(worker.url()));
+        await mapPage.waitForLoadState("domcontentloaded");
+        expect(new URL(mapPage.url()).protocol).toBe("file:");
+        expect(
+            await app.evaluate(
+                ({ BrowserWindow }) =>
+                    BrowserWindow.getAllWindows()[0]?.webContents.getLastWebPreferences()
+                        .webSecurity
+            )
+        ).toBe(true);
+
+        const results = await mapPage.evaluate(async () => {
+            const loadModule = async <T>(relativePath: string): Promise<T> => {
+                const moduleUrl = new URL(relativePath, window.location.href)
+                    .href;
+                // eslint-disable-next-line no-unsanitized/method -- Only fixed application module paths are passed below.
+                return import(moduleUrl) as Promise<T>;
+            };
+            const vendors = await loadModule<{
+                ensureRendererVendorBundle: (entry: "map") => Promise<void>;
+            }>("./renderer/vendorBundleLoader.js");
+            await vendors.ensureRendererVendorBundle("map");
+            const leafletRegistry = await loadModule<{
+                resolveLeafletRuntime: (
+                    predicate: (candidate: unknown) => boolean
+                ) => typeof import("leaflet") | null;
+            }>("./utils/maps/core/leafletRuntime.js");
+            const factoryRegistry = await loadModule<{
+                resolveMapLibreLayerFactory: () =>
+                    | ((
+                          options: Record<string, unknown>
+                      ) => import("leaflet").Layer & {
+                          getMaplibreMap: () => import("maplibre-gl").Map;
+                      })
+                    | null;
+            }>("./utils/maps/layers/mapLibreLayerRuntime.js");
+            const leaflet = leafletRegistry.resolveLeafletRuntime(
+                (candidate) =>
+                    typeof candidate === "object" && candidate !== null
+            );
+            const createLayer = factoryRegistry.resolveMapLibreLayerFactory();
+            if (!leaflet || !createLayer) {
+                throw new Error(
+                    "The production MapLibre Leaflet bridge did not register"
+                );
+            }
+
+            const renders: number[] = [];
+            // Exercise the worker-backed renderer again after removing the map;
+            // MapLibre may retain shared workers for its global dispatcher.
+            for (let cycle = 0; cycle < 2; cycle += 1) {
+                const container = document.createElement("div");
+                container.style.cssText =
+                    "position:fixed;inset:0;width:512px;height:512px;z-index:99999";
+                document.body.append(container);
+                const map = new leaflet.Map(container, {
+                    zoomControl: false,
+                }).setView([0, 0], 3);
+                try {
+                    const layer = createLayer({
+                        attributionControl: false,
+                        style: {
+                            version: 8,
+                            sources: {
+                                fixture: {
+                                    type: "geojson",
+                                    data: {
+                                        type: "FeatureCollection",
+                                        features: [
+                                            {
+                                                type: "Feature",
+                                                properties: {
+                                                    fixture: "offline-worker",
+                                                },
+                                                geometry: {
+                                                    type: "Point",
+                                                    coordinates: [0, 0],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                },
+                            },
+                            layers: [
+                                {
+                                    id: "fixture-circle",
+                                    type: "circle",
+                                    source: "fixture",
+                                    paint: {
+                                        "circle-radius": 24,
+                                        "circle-color": "#ff0000",
+                                    },
+                                },
+                            ],
+                        },
+                    });
+                    layer.addTo(map);
+                    const glMap = layer.getMaplibreMap();
+                    await new Promise<void>((resolve, reject) => {
+                        const timeout = window.setTimeout(
+                            () =>
+                                reject(
+                                    new Error(
+                                        "Offline MapLibre worker/render timed out"
+                                    )
+                                ),
+                            15_000
+                        );
+                        glMap.once("error", (event) => {
+                            window.clearTimeout(timeout);
+                            reject(event.error);
+                        });
+                        glMap.once("idle", () => {
+                            window.clearTimeout(timeout);
+                            resolve();
+                        });
+                    });
+                    renders.push(
+                        glMap
+                            .queryRenderedFeatures({
+                                layers: ["fixture-circle"],
+                            })
+                            .filter(
+                                (feature) =>
+                                    feature.properties.fixture ===
+                                    "offline-worker"
+                            ).length
+                    );
+                    map.remove();
+                } finally {
+                    container.remove();
+                }
+            }
+            return renders;
+        });
+
+        expect(results).toStrictEqual([1, 1]);
+        expect(workerUrls.length).toBeGreaterThanOrEqual(1);
+        expect(workerUrls.every((url) => url.startsWith("blob:"))).toBe(true);
+        expect(errors).toStrictEqual([]);
+    } finally {
+        await closeElectronApp(app);
+        removeElectronLaunchProfile(profile);
+    }
 });
 
 test.describe("FitFileViewer Playwright fixtures", () => {
@@ -1415,11 +1583,8 @@ test.describe("FitFileViewer Electron UI", () => {
             activeFileName: sampleFitActivityState.activeFileName,
         });
 
-        const emptyBrowserFolder = path.join(
-            repositoryRoot,
-            "tests",
-            "fixtures"
-        );
+        const emptyBrowserFolder = test.info().outputPath("empty-browser");
+        fs.mkdirSync(emptyBrowserFolder, { recursive: true });
         await armFitBrowserStatusRecorder();
         await mockOpenFileDialog({
             canceled: false,

@@ -96,9 +96,12 @@ export function commitChangelogWorkflow(options) {
         [
             "push",
             "origin",
-            options.targetBranch,
+            `HEAD:refs/heads/${options.targetBranch}`,
         ],
-        { cwd, runCommand }
+        {
+            cwd,
+            runCommand,
+        }
     );
     log("Changelogs updated and pushed to repository");
 

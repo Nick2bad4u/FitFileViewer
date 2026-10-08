@@ -1,222 +1,139 @@
 import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-const environment = { ...process.env };
-delete environment.npm_config_allow_scripts;
-delete environment.NPM_CONFIG_ALLOW_SCRIPTS;
+import { evaluateCapturedAudit } from "./lib/audit-evaluation.mjs";
+import { repositoryRoot } from "./lib/workspaces.mjs";
 
-const npmCliPath = process.env.npm_execpath;
-const severityRank = {
-    critical: 4,
-    high: 3,
-    info: 0,
-    low: 1,
-    moderate: 2,
-};
-
-export const allowedDocusaurusAuditAdvisories = new Set([
-    "GHSA-5p2g-fcmc-qvqq",
-    "GHSA-w3rx-r6r6-pgpr",
-]);
-
-export function getBlockingAuditVulnerabilities(
-    auditReport,
-    allowedAdvisories,
-    minimumSeverity = "high"
-) {
-    const vulnerabilities = getAuditVulnerabilities(auditReport);
-    const minimumRank = severityRank[minimumSeverity] ?? severityRank.high;
-
-    return Object.entries(vulnerabilities)
-        .filter(([, vulnerability]) =>
-            isBlockingVulnerability(
-                vulnerability,
-                vulnerabilities,
-                allowedAdvisories,
-                minimumRank
-            )
-        )
-        .map(([name]) => name)
-        .sort();
+export function readAuditJson(file) {
+    return JSON.parse(fs.readFileSync(file, "utf8"));
 }
 
-function getAuditVulnerabilities(auditReport) {
-    if (
-        !auditReport ||
-        typeof auditReport !== "object" ||
-        Array.isArray(auditReport)
-    ) {
-        throw new TypeError("npm audit returned an invalid report");
-    }
-
-    if ("error" in auditReport) {
-        throw new Error("npm audit reported an error instead of results");
-    }
-
-    const vulnerabilities = auditReport.vulnerabilities;
-    if (
-        !vulnerabilities ||
-        typeof vulnerabilities !== "object" ||
-        Array.isArray(vulnerabilities)
-    ) {
-        throw new Error("npm audit report is missing vulnerability results");
-    }
-
-    return vulnerabilities;
+export function getAuditEnvironment(environment) {
+    const sanitized = { ...environment };
+    delete sanitized.npm_config_allow_scripts;
+    delete sanitized.NPM_CONFIG_ALLOW_SCRIPTS;
+    return sanitized;
 }
 
-function isBlockingVulnerability(
-    vulnerability,
-    vulnerabilities,
-    allowedAdvisories,
-    minimumRank
+export function resolveNpmAuditCommand(
+    args,
+    environment,
+    platform = process.platform
 ) {
-    const rank = severityRank[vulnerability.severity] ?? 0;
-    return (
-        rank >= minimumRank &&
-        !isAllowedVulnerability(
-            vulnerability,
-            vulnerabilities,
-            allowedAdvisories,
-            new Set()
-        )
+    const adjacentCli = path.join(
+        path.dirname(process.execPath),
+        "node_modules",
+        "npm",
+        "bin",
+        "npm-cli.js"
     );
-}
-
-function runNpmAudit(arguments_, options = {}) {
-    const { command, commandArguments } = resolveNpmCommand(arguments_);
-    const result = spawnSync(command, commandArguments, {
-        cwd: process.cwd(),
-        encoding: options.captureJson ? "utf8" : undefined,
-        env: environment,
-        stdio: options.captureJson
-            ? [
-                  "ignore",
-                  "pipe",
-                  "pipe",
-              ]
-            : "inherit",
-    });
-
-    if (result.error) {
-        throw result.error;
-    }
-
-    if (result.status === 0) {
-        return;
-    }
-
-    if (!options.captureJson) {
+    const npmCli =
+        environment.npm_execpath ??
+        (fs.existsSync(adjacentCli) ? adjacentCli : undefined);
+    if (npmCli) return { command: process.execPath, args: [npmCli, ...args] };
+    if (platform === "win32") {
         throw new Error(
-            `npm audit failed with exit code ${result.status ?? 1}`
+            "Run npm run audit so the native Node npm CLI path is available"
         );
     }
-
-    handleCapturedAuditFailure(result, options);
+    return { command: "npm", args };
 }
 
-function resolveNpmCommand(arguments_) {
-    if (npmCliPath) {
-        return {
-            command: process.execPath,
-            commandArguments: [npmCliPath, ...arguments_],
-        };
+function printAuditSummary(result, policy, log) {
+    log(
+        `[audit:${result.scope}] npm status ${result.rawStatus}; threshold ${result.minimumSeverity}; accepted ${result.accepted.length}, blocked ${result.blocked.length}, below threshold ${result.belowThreshold.length}.`
+    );
+    if (result.accepted.length > 0) {
+        const advisories = policy.advisories
+            .filter((advisory) =>
+                result.acceptedAdvisories.includes(advisory.url)
+            )
+            .map(
+                (advisory) =>
+                    `${advisory.name} (${advisory.url.split("/").at(-1)})`
+            );
+        log(
+            `[audit:${result.scope}] Applied exact assessed lock-node exceptions: ${advisories.join(", ")}.`
+        );
     }
+    if (result.blocked.length > 0) {
+        log(
+            `[audit:${result.scope}] Blocking dependency findings: ${result.blocked.join(", ")}`
+        );
+    }
+}
 
+function runAuditScope(scope, dependencies) {
+    const { readJson, environment, runner, log, root } = dependencies;
+    const policy = readJson(
+        path.join(root, "scripts", "audit-policy", `${scope}.json`)
+    );
+    const directory = scope === "root" ? root : path.join(root, "docusaurus");
+    const lock = readJson(path.join(directory, "package-lock.json"));
+    const args = [
+        "audit",
+        `--audit-level=${policy.minimumSeverity}`,
+        "--json",
+    ];
+    const invocation = resolveNpmAuditCommand(args, environment);
+    const captured = runner(invocation.command, invocation.args, {
+        cwd: directory,
+        encoding: "utf8",
+        env: environment,
+        stdio: [
+            "ignore",
+            "pipe",
+            "pipe",
+        ],
+        timeout: 300_000,
+        maxBuffer: 16 * 1024 * 1024,
+    });
+    if (captured.stderr) log(`[audit:${scope}] ${captured.stderr.trimEnd()}`);
+    const result = evaluateCapturedAudit(captured, lock, policy);
+    printAuditSummary(result, policy, log);
+    return result.blocked.length === 0;
+}
+
+function resolveAuditDependencies({
+    readJson = readAuditJson,
+    environment = process.env,
+    runner = spawnSync,
+    log = console.log,
+    root = repositoryRoot,
+    logError = console.error,
+} = {}) {
     return {
-        command: process.platform === "win32" ? "npm.cmd" : "npm",
-        commandArguments: arguments_,
+        readJson,
+        environment: getAuditEnvironment(environment),
+        runner,
+        log,
+        root,
+        logError,
     };
 }
 
-function handleCapturedAuditFailure(result, options) {
-    const auditReport = parseAuditReport(result.stdout);
-    const blockingVulnerabilities = getBlockingAuditVulnerabilities(
-        auditReport,
-        options.allowedAdvisories,
-        options.minimumSeverity
-    );
-    if (blockingVulnerabilities.length === 0) {
-        console.warn(
-            "Docusaurus audit contains only explicitly accepted, unpatched image-size advisories (GHSA-5p2g-fcmc-qvqq and GHSA-w3rx-r6r6-pgpr)."
-        );
-        return;
-    }
-
-    process.stderr.write(result.stderr ?? "");
-    process.stdout.write(result.stdout ?? "");
-    throw new Error(
-        `npm audit found blocking vulnerabilities: ${blockingVulnerabilities.join(", ")}`
-    );
-}
-
-function isAllowedVulnerability(
-    vulnerability,
-    vulnerabilities,
-    allowedAdvisories,
-    visited
-) {
-    if (!Array.isArray(vulnerability.via) || vulnerability.via.length === 0) {
-        return false;
-    }
-
-    return vulnerability.via.every((via) => {
-        if (typeof via === "string") {
-            if (visited.has(via) || !vulnerabilities[via]) {
-                return false;
-            }
-
-            const nextVisited = new Set(visited);
-            nextVisited.add(via);
-            return isAllowedVulnerability(
-                vulnerabilities[via],
-                vulnerabilities,
-                allowedAdvisories,
-                nextVisited
+export function runAudits(options = {}) {
+    const dependencies = resolveAuditDependencies(options);
+    let failed = false;
+    for (const scope of ["root", "docs"]) {
+        try {
+            if (!runAuditScope(scope, dependencies)) failed = true;
+        } catch (error) {
+            failed = true;
+            dependencies.logError(
+                `[audit:${scope}] ${error instanceof Error ? error.message : String(error)}`
             );
         }
-
-        if (!via || typeof via.url !== "string") {
-            return false;
-        }
-
-        const advisoryId = via.url.split("/").at(-1);
-        return allowedAdvisories.has(advisoryId);
-    });
-}
-
-function parseAuditReport(output) {
-    try {
-        return JSON.parse(output);
-    } catch (error) {
-        throw new Error("npm audit did not return valid JSON", {
-            cause: error,
-        });
     }
-}
-
-export function runAudits() {
-    runNpmAudit(["audit", "--audit-level=moderate"]);
-    runNpmAudit(
-        [
-            "--prefix",
-            "docusaurus",
-            "audit",
-            "--audit-level=high",
-            "--json",
-        ],
-        {
-            allowedAdvisories: allowedDocusaurusAuditAdvisories,
-            captureJson: true,
-            minimumSeverity: "high",
-        }
-    );
+    return failed ? 1 : 0;
 }
 
 if (
     process.argv[1] &&
     import.meta.url === pathToFileURL(process.argv[1]).href
 ) {
-    runAudits();
+    process.exitCode = runAudits();
 }

@@ -41,7 +41,8 @@ type VerifySignedArtifactsModule = {
     ) => string[];
     createSigningVerificationCommand: (
         artifactPath: string,
-        platform: string
+        platform: string,
+        options?: { signingRequired?: boolean }
     ) => {
         args: string[];
         command: string;
@@ -98,6 +99,13 @@ function createTemporaryReleaseDir() {
     );
     temporaryDirectories.push(releaseDir);
     return releaseDir;
+}
+
+function readSigningReport(
+    releaseDir: string,
+    fileName = "signing-verification-report.json"
+): ReturnType<VerifySignedArtifactsModule["writeSigningVerificationReport"]> {
+    return JSON.parse(fs.readFileSync(path.join(releaseDir, fileName), "utf8"));
 }
 
 afterEach(() => {
@@ -205,14 +213,11 @@ describe("verify-signed-artifacts script", () => {
         expect(macosCommand.args).toContain("--verify");
     });
 
-    it("runs verification commands only when signing is required", async () => {
-        expect.assertions(7);
+    it("skips Linux verification even when publisher signing is required", async () => {
+        expect.assertions(3);
 
         const releaseDir = createTemporaryReleaseDir();
-        const reportPath = path.join(releaseDir, "signing-report.json");
-        fs.writeFileSync(path.join(releaseDir, "Fit-File-Viewer.exe"), "");
         const commandRunner = vi.fn<CommandRunner>(() => ({ status: 0 }));
-        const logger = vi.fn<(message: string) => void>();
         const { verifySignedArtifacts } = await importVerifySignedArtifacts();
 
         expect(
@@ -222,14 +227,29 @@ describe("verify-signed-artifacts script", () => {
                     "linux",
                     "--release-dir",
                     releaseDir,
-                    "--report",
-                    reportPath,
                 ],
                 { REQUIRE_CODE_SIGNING: "true" },
-                commandRunner,
-                logger
+                commandRunner
             )
         ).toBe(0);
+        expect(commandRunner).not.toHaveBeenCalled();
+        expect(readSigningReport(releaseDir)).toMatchObject({
+            platform: "linux",
+            signingRequired: true,
+            status: "skipped",
+        });
+    });
+
+    it("runs Windows verification when publisher signing is required", async () => {
+        expect.assertions(6);
+
+        const releaseDir = createTemporaryReleaseDir();
+        const reportPath = path.join(releaseDir, "signing-report.json");
+        fs.writeFileSync(path.join(releaseDir, "Fit-File-Viewer.exe"), "");
+        const commandRunner = vi.fn<CommandRunner>(() => ({ status: 0 }));
+        const logger = vi.fn<(message: string) => void>();
+        const { verifySignedArtifacts } = await importVerifySignedArtifacts();
+
         expect(
             verifySignedArtifacts(
                 [
@@ -247,24 +267,179 @@ describe("verify-signed-artifacts script", () => {
         ).toBe(0);
         expect(commandRunner).toHaveBeenCalledOnce();
         expect(commandRunner.mock.calls[0]?.[0]).toBe("powershell.exe");
-        expect(JSON.parse(fs.readFileSync(reportPath, "utf8"))).toMatchObject({
+        const report = readSigningReport(releaseDir, "signing-report.json");
+        expect(report).toMatchObject({
             artifactCount: 1,
             platform: "win32",
             signingRequired: true,
             status: "verified",
         });
-        expect(
-            JSON.parse(fs.readFileSync(reportPath, "utf8")).artifacts
-        ).toStrictEqual([{ path: "Fit-File-Viewer.exe", type: "file" }]);
-        expect(
-            JSON.parse(fs.readFileSync(reportPath, "utf8")).verificationResults
-        ).toStrictEqual([
+        expect(report.artifacts).toStrictEqual([
+            { path: "Fit-File-Viewer.exe", type: "file" },
+        ]);
+        expect(report.verificationResults).toStrictEqual([
             expect.objectContaining({
                 command: "powershell.exe",
                 path: "Fit-File-Viewer.exe",
                 status: 0,
             }),
         ]);
+    });
+
+    it.each([
+        "mac",
+        "mac-arm64",
+        "mac-universal",
+    ])(
+        "verifies every architecture of %s bundles without requiring a publisher certificate",
+        async (directoryName) => {
+            expect.assertions(4);
+
+            const releaseDir = createTemporaryReleaseDir();
+            const appBundlePath = path.join(
+                releaseDir,
+                directoryName,
+                "Fit File Viewer.app"
+            );
+            fs.mkdirSync(appBundlePath, { recursive: true });
+            const commandRunner = vi.fn<CommandRunner>(() => ({ status: 0 }));
+            const { verifySignedArtifacts } =
+                await importVerifySignedArtifacts();
+
+            expect(
+                verifySignedArtifacts(
+                    [
+                        "--platform",
+                        "darwin",
+                        "--release-dir",
+                        releaseDir,
+                    ],
+                    { REQUIRE_CODE_SIGNING: "false" },
+                    commandRunner
+                )
+            ).toBe(0);
+            expect(commandRunner).toHaveBeenCalledOnce();
+            expect(commandRunner.mock.calls[0]).toStrictEqual([
+                "codesign",
+                [
+                    "--verify",
+                    "--deep",
+                    "--strict",
+                    "--all-architectures",
+                    "--verbose=2",
+                    appBundlePath,
+                ],
+                expect.objectContaining({ stdio: "inherit" }),
+            ]);
+            expect(readSigningReport(releaseDir)).toMatchObject({
+                artifactCount: 1,
+                signingRequired: false,
+                status: "verified",
+            });
+        }
+    );
+
+    it("requires a Developer ID certificate chain when publisher signing is required", async () => {
+        expect.assertions(2);
+
+        const { createSigningVerificationCommand } =
+            await importVerifySignedArtifacts();
+        const verification = createSigningVerificationCommand(
+            "/Applications/Fit File Viewer.app",
+            "darwin",
+            { signingRequired: true }
+        );
+
+        expect(verification.args).toContain("--all-architectures");
+        expect(verification.args).toContain(
+            "=anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] exists and certificate leaf[field.1.2.840.113635.100.6.1.13] exists"
+        );
+    });
+
+    it.each([1, null])(
+        "fails macOS integrity verification when codesign returns %s",
+        async (status) => {
+            expect.assertions(2);
+
+            const releaseDir = createTemporaryReleaseDir();
+            fs.mkdirSync(
+                path.join(releaseDir, "mac-arm64", "Fit File Viewer.app"),
+                { recursive: true }
+            );
+            const { verifySignedArtifacts } =
+                await importVerifySignedArtifacts();
+
+            expect(
+                verifySignedArtifacts(
+                    [
+                        "--platform",
+                        "darwin",
+                        "--release-dir",
+                        releaseDir,
+                    ],
+                    { REQUIRE_CODE_SIGNING: "false" },
+                    vi.fn<CommandRunner>(() => ({ status }))
+                )
+            ).toBe(1);
+            expect(
+                JSON.parse(
+                    fs.readFileSync(
+                        path.join(
+                            releaseDir,
+                            "signing-verification-report.json"
+                        ),
+                        "utf8"
+                    )
+                )
+            ).toMatchObject({
+                signingRequired: false,
+                status: "failed",
+            });
+        }
+    );
+
+    it("fails missing macOS integrity candidates even without publisher signing", async () => {
+        expect.assertions(2);
+
+        const releaseDir = createTemporaryReleaseDir();
+        const { verifySignedArtifacts } = await importVerifySignedArtifacts();
+        const commandRunner = vi.fn<CommandRunner>(() => ({ status: 0 }));
+
+        expect(() =>
+            verifySignedArtifacts(
+                [
+                    "--platform",
+                    "darwin",
+                    "--release-dir",
+                    releaseDir,
+                ],
+                { REQUIRE_CODE_SIGNING: "false" },
+                commandRunner
+            )
+        ).toThrow("No signed artifact candidates found");
+        expect(commandRunner).not.toHaveBeenCalled();
+    });
+
+    it("skips unsigned Windows publisher verification", async () => {
+        expect.assertions(2);
+
+        const releaseDir = createTemporaryReleaseDir();
+        const { verifySignedArtifacts } = await importVerifySignedArtifacts();
+        const commandRunner = vi.fn<CommandRunner>(() => ({ status: 0 }));
+
+        expect(
+            verifySignedArtifacts(
+                [
+                    "--platform",
+                    "win32",
+                    "--release-dir",
+                    releaseDir,
+                ],
+                { REQUIRE_CODE_SIGNING: "false" },
+                commandRunner
+            )
+        ).toBe(0);
+        expect(commandRunner).not.toHaveBeenCalled();
     });
 
     it("appends a GitHub job summary when summary output is available", async () => {

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
+import { parse as parseYaml } from "yaml";
 
 const releaseRehearsalWorkflowPath = path.join(
     process.cwd(),
@@ -15,8 +16,62 @@ function readReleaseRehearsalWorkflow(): string {
 }
 
 describe("release rehearsal workflow", () => {
+    it("tests its own ARM64 artifact after packaging without bypassing the release gates", () => {
+        expect.assertions(7);
+        const { jobs } = parseYaml(readReleaseRehearsalWorkflow()) as {
+            jobs: Record<string, Record<string, unknown>>;
+        };
+        const compatibility = jobs["macos-compatibility"];
+        expect(compatibility?.needs).toBe("release-rehearsal");
+        expect(compatibility?.if).toBe("always() && !cancelled()");
+        expect(compatibility?.uses).toBe(
+            "./.github/workflows/macos-compatibility-smoke.yml"
+        );
+        expect(compatibility?.with).toEqual({
+            "rehearsal-run-id": "${{ github.run_id }}",
+        });
+        expect(compatibility?.permissions).toEqual({
+            actions: "read",
+            contents: "read",
+        });
+        expect(jobs["release-verification"]).not.toHaveProperty("if");
+        expect(jobs["release-rehearsal"]).not.toHaveProperty("if");
+    });
+
+    it("requires the complete gate independently of all six native artifact jobs", () => {
+        expect.assertions(9);
+        type RehearsalJob = {
+            "runs-on": string;
+            "timeout-minutes": number;
+            steps: { run?: string }[];
+            strategy?: { matrix: { include: unknown[] } };
+        };
+        const { jobs } = parseYaml(readReleaseRehearsalWorkflow()) as {
+            jobs: Record<
+                "release-verification" | "release-rehearsal",
+                RehearsalJob
+            >;
+        };
+        const gate = jobs["release-verification"];
+        const artifacts = jobs["release-rehearsal"];
+        const gateCommands = gate.steps
+            .map((step) => step.run ?? "")
+            .join("\n");
+        expect(gate["runs-on"]).toBe("ubuntu-latest");
+        expect(gate["timeout-minutes"]).toBe(60);
+        expect(gate).not.toHaveProperty("continue-on-error");
+        expect(gate).not.toHaveProperty("if");
+        expect(artifacts).not.toHaveProperty("needs");
+        expect(gateCommands).toContain("xvfb-run -a npm run release:verify &");
+        expect(gateCommands).toContain('wait "$verify_pid"');
+        expect(
+            artifacts.steps.map((step) => step.run ?? "").join("\n")
+        ).not.toMatch(/npm run release:verify(?:\s|$)/u);
+        expect(artifacts.strategy?.matrix.include).toHaveLength(6);
+    });
+
     it("runs the release gate, signing preflight, packaged smoke, and artifact upload without publishing", () => {
-        expect.assertions(43);
+        expect.assertions(46);
 
         const workflow = readReleaseRehearsalWorkflow();
 
@@ -84,9 +139,10 @@ describe("release rehearsal workflow", () => {
             "WIN_CSC_LINK: ${{ matrix.runner-os == 'Windows' && secrets.WINDOWS_CSC_LINK || '' }}"
         );
         expect(workflow).toContain("xvfb-run -a npm run release:verify");
-        expect(workflow).toContain(
-            "release-verify-command: npm run release:verify"
-        );
+        expect(workflow).toContain("npm run build:ci-matrix");
+        expect(workflow).toContain("node scripts/run-distributable-smoke.mjs");
+        expect(workflow).toContain("arch: universal");
+        expect(workflow).toContain("arch: ia32");
         expect(workflow).toContain("FFV_PACKAGED_SMOKE_TIMEOUT_MS:");
         expect(workflow).toContain('FFV_FORCE_UNSIGNED_PACKAGE: "true"');
         expect(workflow).toContain('CSC_IDENTITY_AUTO_DISCOVERY: "false"');
@@ -94,9 +150,9 @@ describe("release rehearsal workflow", () => {
         expect(workflow).toContain('REQUIRE_CODE_SIGNING: "false"');
         expect(workflow).toContain("actions/upload-artifact@");
         expect(workflow).toContain(
-            "name: release-rehearsal-${{ matrix.runner-os }}"
+            "name: release-rehearsal-${{ matrix.os }}-${{ matrix.arch }}"
         );
-        expect(workflow).toContain("path: release-dist/**");
+        expect(workflow).toContain("release-dist/distributable-smoke-*.json");
         expect(workflow).not.toContain("softprops/action-gh-release");
         expect(workflow).not.toContain("npm run package:signed");
     });

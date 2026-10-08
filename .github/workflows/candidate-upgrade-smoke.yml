@@ -85,7 +85,7 @@ jobs:
                   $installer = Resolve-Path (
                     "release-inputs/Fit-File-Viewer-nsis-x64-$env:FROM_VERSION.exe"
                   )
-                  $process = Start-Process -FilePath $installer `
+                  $process = Start-Process -WindowStyle Hidden -FilePath $installer `
                     -ArgumentList @("/S", "/D=$env:FFV_UPGRADE_INSTALL_DIR") `
                     -Wait -PassThru
                   if ($process.ExitCode -ne 0) {
@@ -117,7 +117,7 @@ jobs:
                   $candidate = Resolve-Path (
                     "release-dist/Fit-File-Viewer-nsis-x64-$env:FFV_CANDIDATE_VERSION.exe"
                   )
-                  $process = Start-Process -FilePath $candidate `
+                  $process = Start-Process -WindowStyle Hidden -FilePath $candidate `
                     -ArgumentList @("/S", "--updated") -Wait -PassThru
                   if ($process.ExitCode -ne 0) {
                       throw "Candidate installer exited with $($process.ExitCode)."
@@ -176,10 +176,14 @@ jobs:
                   }
 
             - name: Smoke test upgraded executable
+              env:
+                  FFV_SMOKE_EXPECTED_ARCH: x64
+                  FFV_SMOKE_EXPECTED_VERSION: ${{ env.FFV_CANDIDATE_VERSION }}
+                  FFV_SMOKE_DIAGNOSTICS_DIRECTORY: ${{ runner.temp }}/candidate-upgrade-smoke
               run: >-
                   node scripts/run-packaged-smoke.mjs
                   --executable "$env:FFV_UPGRADE_EXECUTABLE"
-                  --startup-timeout-ms 15000
+                  --startup-timeout-ms 60000
 
             - name: Upload candidate upgrade evidence
               if: always()
@@ -187,7 +191,10 @@ jobs:
               with:
                   name: candidate-upgrade-evidence-${{ inputs.from-version }}
                   if-no-files-found: ignore
-                  path: ${{ runner.temp }}/candidate-upgrade-registry.json
+                  retention-days: 14
+                  path: |
+                      ${{ runner.temp }}/candidate-upgrade-registry.json
+                      ${{ runner.temp }}/candidate-upgrade-smoke/
 
             - name: Clean up isolated installation
               if: always()
@@ -198,5 +205,5 @@ jobs:
                     "Uninstall Fit File Viewer.exe"
                   )
                   if (Test-Path -LiteralPath $uninstaller -PathType Leaf) {
-                      Start-Process -FilePath $uninstaller -ArgumentList "/S" -Wait
+                      Start-Process -WindowStyle Hidden -FilePath $uninstaller -ArgumentList "/S" -Wait
                   }

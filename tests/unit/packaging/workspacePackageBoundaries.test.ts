@@ -282,7 +282,7 @@ const expectedRootToolingScripts = {
     "verify:fast":
         "npm run sync:node-version-files:check && npm run prettier && npm run lint && npm run lint:css && npm run docs:typecheck && npm test",
     "verify:full":
-        "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run release:check-signing && npm run package:unsigned && npm run test:packaged",
+        "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run release:check-signing && npm run package:unsigned && npm run release:verify-signing-artifacts && npm run test:packaged",
     "verify:release": "npm run verify:full",
     "verify:release:signed":
         "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run package:signed && cross-env REQUIRE_CODE_SIGNING=true npm run release:verify-signing-artifacts && npm run test:packaged",
@@ -377,13 +377,16 @@ describe("workspace package boundaries", () => {
 
         expect(rootPackage).not.toHaveProperty("workspaces");
         expect(docusaurusPackage.overrides).toStrictEqual({
+            "@docusaurus/core": {
+                tinypool: "^2.1.2",
+            },
             "copy-webpack-plugin": {
                 "serialize-javascript": "7.0.5",
             },
             "css-minimizer-webpack-plugin": {
                 "serialize-javascript": "7.0.5",
             },
-            joi: "18.2.1",
+            joi: "18.2.9",
             qs: "6.16.0",
             sockjs: {
                 uuid: "11.1.1",
@@ -571,7 +574,7 @@ describe("workspace package boundaries", () => {
         );
         expect(releaseWorkflow).toContain("npm run test:packaged");
         expect(releaseWorkflow).toContain(
-            "Release artifacts are intentionally unsigned"
+            "macOS apps have verified ad hoc signatures for executable integrity, but are not notarized by Apple."
         );
         expect(releaseVersioningFilesWithWorkspaceFlags).toStrictEqual([]);
     });

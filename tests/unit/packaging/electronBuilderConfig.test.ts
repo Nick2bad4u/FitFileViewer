@@ -24,7 +24,12 @@ type ElectronBuilderConfig = {
         maintainer: string;
     };
     mac: {
+        entitlements?: string;
+        entitlementsInherit?: string;
+        hardenedRuntime: boolean;
         icon: string;
+        identity?: string;
+        notarize?: boolean;
     };
     nsis: {
         guid: string;
@@ -158,6 +163,42 @@ describe("electron-builder config", () => {
 
         expect(builderConfig.win.target).not.toContain("squirrel");
         expect(builderConfig.squirrelWindows).toBeUndefined();
+    });
+
+    it("signs macOS builds without a publisher certificate using ad hoc entitlements", () => {
+        expect.assertions(7);
+
+        const builderConfig = loadBuilderConfig("false");
+        const entitlements = readFileSync(
+            path.join(process.cwd(), builderConfig.mac.entitlements ?? ""),
+            "utf8"
+        );
+
+        expect(builderConfig.mac.identity).toBe("-");
+        expect(builderConfig.mac.hardenedRuntime).toBe(true);
+        expect(builderConfig.mac.entitlementsInherit).toBe(
+            builderConfig.mac.entitlements
+        );
+        expect(builderConfig.mac.notarize).toBe(false);
+        expect(entitlements).toMatch(
+            /<key>com\.apple\.security\.cs\.allow-jit<\/key>\s*<true\s*\/>/u
+        );
+        expect(entitlements).toMatch(
+            /<key>com\.apple\.security\.cs\.disable-library-validation<\/key>\s*<true\s*\/>/u
+        );
+        expect(entitlements).not.toContain("allow-unsigned-executable-memory");
+    });
+
+    it("preserves certificate discovery and notarization for publisher-signed macOS builds", () => {
+        expect.assertions(5);
+
+        const builderConfig = loadBuilderConfig("true");
+
+        expect(builderConfig.mac.identity).toBeUndefined();
+        expect(builderConfig.mac.entitlements).toBeUndefined();
+        expect(builderConfig.mac.entitlementsInherit).toBeUndefined();
+        expect(builderConfig.mac.notarize).toBeUndefined();
+        expect(builderConfig.mac.hardenedRuntime).toBe(true);
     });
 
     it("applies Electron fuses through afterPack before signing", async () => {

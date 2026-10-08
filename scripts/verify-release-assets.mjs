@@ -198,13 +198,25 @@ export function verifyReleaseAssets({
     const referencedAssetNames = new Set();
 
     for (const metadataName of requiredUpdaterMetadataNames) {
-        const releaseMetadataAsset = releaseAssetsByName.get(metadataName);
-        if (!releaseMetadataAsset) {
+        if (!releaseAssetsByName.has(metadataName)) {
             throw new Error(
                 `Release is missing required updater metadata: ${metadataName}`
             );
         }
+    }
 
+    const metadataNames = new Set(
+        [...localFilesByName.keys(), ...releaseAssetsByName.keys()].filter(
+            (name) => /^latest.*\.yml$/u.test(name)
+        )
+    );
+    for (const metadataName of metadataNames) {
+        const releaseMetadataAsset = releaseAssetsByName.get(metadataName);
+        if (!releaseMetadataAsset) {
+            throw new Error(
+                `Updater metadata was not uploaded: ${metadataName}`
+            );
+        }
         const metadataPath = getUniqueLocalFile(localFilesByName, metadataName);
         const metadata = parseUpdaterMetadata(metadataPath, metadataName);
         if (metadata.version !== expectedVersion) {
@@ -228,6 +240,39 @@ export function verifyReleaseAssets({
             referencedAssetNames.add(fileEntry.url);
         }
 
+        if (metadata.packages !== undefined) {
+            if (
+                !metadata.packages ||
+                typeof metadata.packages !== "object" ||
+                Array.isArray(metadata.packages)
+            ) {
+                throw new Error(`${metadataName} contains invalid packages`);
+            }
+            for (const [arch, packageEntry] of Object.entries(
+                metadata.packages
+            )) {
+                if (
+                    !packageEntry ||
+                    typeof packageEntry !== "object" ||
+                    !Number.isSafeInteger(packageEntry.size) ||
+                    packageEntry.size < 0 ||
+                    (packageEntry.file !== undefined &&
+                        packageEntry.file !== packageEntry.path)
+                ) {
+                    throw new Error(
+                        `${metadataName} contains an invalid ${arch} package`
+                    );
+                }
+                verifyUpdaterFileEntry({
+                    fileEntry: { ...packageEntry, url: packageEntry.path },
+                    localFilesByName,
+                    metadataName,
+                    releaseAssetsByName,
+                });
+                referencedAssetNames.add(packageEntry.path);
+            }
+        }
+
         const primaryEntry = metadata.files.find(
             (fileEntry) => fileEntry.url === metadata.path
         );
@@ -239,7 +284,7 @@ export function verifyReleaseAssets({
     }
 
     return {
-        metadataCount: requiredUpdaterMetadataNames.length,
+        metadataCount: metadataNames.size,
         referencedAssetCount: referencedAssetNames.size,
     };
 }
@@ -297,8 +342,14 @@ function verifyUpdaterFileEntry({
     if (
         !fileEntry ||
         typeof fileEntry !== "object" ||
+        Array.isArray(fileEntry) ||
         typeof fileEntry.url !== "string" ||
-        typeof fileEntry.sha512 !== "string"
+        !/^[^/\\:?#%]+$/u.test(fileEntry.url) ||
+        fileEntry.url === "." ||
+        fileEntry.url === ".." ||
+        typeof fileEntry.sha512 !== "string" ||
+        (fileEntry.size !== undefined &&
+            (!Number.isSafeInteger(fileEntry.size) || fileEntry.size < 0))
     ) {
         throw new Error(`${metadataName} contains an invalid files entry`);
     }

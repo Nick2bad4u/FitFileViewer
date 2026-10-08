@@ -36111,7 +36111,7 @@ describe("architecture boundaries", () => {
             "setMapLibreLayerFactory"
         );
         expect(rendererVendorMapSource).toContain(
-            "registerMapLibreLayerFactory"
+            "map: { leafletRuntime: Leaflet, mapLibreLayerFactory }"
         );
         expect(violations).toStrictEqual([]);
     });

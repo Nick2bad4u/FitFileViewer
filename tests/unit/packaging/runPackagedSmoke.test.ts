@@ -1,7 +1,6 @@
 import { chmodSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import process from "node:process";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -27,6 +26,7 @@ type CommandRunner = (
     }
 ) => {
     error?: NodeJS.ErrnoException;
+    signal?: string | null;
     status: number | null;
     stderr?: string;
     stdout?: string;
@@ -59,11 +59,13 @@ describe("run-packaged-smoke script", () => {
 
         expect(parseArgs(["--executable", "app.exe"])).toStrictEqual({
             executablePath: "app.exe",
+            fixturePath: undefined,
             releaseDistPath: undefined,
             startupTimeoutMs: undefined,
         });
         expect(parseArgs(["--release-dist=dist"])).toStrictEqual({
             executablePath: undefined,
+            fixturePath: undefined,
             releaseDistPath: "dist",
             startupTimeoutMs: undefined,
         });
@@ -212,211 +214,278 @@ describe("run-packaged-smoke script", () => {
         ).toStrictEqual([]);
     });
 
-    it("launches the packaged executable and treats timeout as a healthy startup", () => {
-        expect.assertions(7);
-
-        const releaseDistPath = createTemporaryRoot();
-        const executablePath = path.join(
-            releaseDistPath,
-            "win-unpacked",
-            "Fit File Viewer.exe"
-        );
+    it("requires a nonce-bound report from a visible UI with parsed FIT data", () => {
+        expect.assertions(6);
+        const executablePath = path.join(createTemporaryRoot(), "app.exe");
         writeExecutable(executablePath);
-
-        const commandRunner = vi.fn<CommandRunner>().mockReturnValue({
-            error: Object.assign(new Error("timed out"), {
-                code: "ETIMEDOUT",
-            }),
-            status: null,
-        });
-        const logger = vi.fn<(message: string) => void>();
-
+        const commandRunner = vi
+            .fn<CommandRunner>()
+            .mockImplementation((_command, _args, options) => {
+                writeFileSync(
+                    path.join(
+                        String(options.env.FFV_SMOKE_DIRECTORY),
+                        "report.json"
+                    ),
+                    JSON.stringify({
+                        nonce: options.env.FFV_SMOKE_NONCE,
+                        status: "passed",
+                        visible: true,
+                        activity: {
+                            recordCount: 1285,
+                            sessionCount: 1,
+                            appInitialized: true,
+                            mapReady: true,
+                            routeCount: 58,
+                        },
+                    })
+                );
+                return { status: 0 };
+            });
+        const logger = vi.fn();
         expect(
             runPackagedSmoke(
                 ["--executable", executablePath],
-                { PATH: process.env.PATH },
+                {},
                 commandRunner,
                 logger
             )
         ).toBe(0);
-
         const [
-            command,
+            _command,
             args,
             options,
-        ] = commandRunner.mock.calls[0] ?? [];
-
-        expect(command).toBe(executablePath);
-        expect(args).toStrictEqual(["--disable-http-cache"]);
-        expect(options?.env.ELECTRON_IS_DEV).toBe("0");
-        expect(options?.stdio).toHaveLength(3);
-        expect(options?.timeout).toBe(10_000);
+        ] = commandRunner.mock.calls[0]!;
+        expect(args).toContain("--ffv-smoke-test");
+        expect(options.env.FFV_SMOKE_FIXTURE).toMatch(/\.fit$/u);
+        expect(options.env.NODE_ENV).toBe("production");
+        expect(options.timeout).toBe(60_000);
         expect(logger).toHaveBeenCalledWith(
-            `[packaged-smoke] Launching ${executablePath} for 10000ms`
+            expect.stringContaining("Verified visible renderer")
         );
+        rmSync(String(options.env.FFV_SMOKE_DIRECTORY), {
+            force: true,
+            recursive: true,
+        });
     });
 
-    it("treats a clean timeout shutdown as a healthy startup", () => {
-        expect.assertions(1);
-
-        const releaseDistPath = createTemporaryRoot();
-        const executablePath = path.join(
-            releaseDistPath,
-            "win-unpacked",
-            "Fit File Viewer.exe"
-        );
-        writeExecutable(executablePath);
-
-        const commandRunner = vi.fn<CommandRunner>().mockReturnValue({
-            error: Object.assign(new Error("timed out"), {
-                code: "ETIMEDOUT",
-            }),
+    it.each([
+        { status: null, signal: "SIGSEGV" },
+        { status: null, signal: "SIGABRT" },
+        { status: null, signal: "SIGKILL" },
+        { status: 1 },
+        { status: null },
+        {
             status: 0,
-        });
-
-        expect(
+            error: Object.assign(new Error("timeout"), { code: "ETIMEDOUT" }),
+        },
+    ])("rejects unsuccessful process completion %j", (result) => {
+        expect.assertions(1);
+        const executablePath = path.join(createTemporaryRoot(), "app.exe");
+        writeExecutable(executablePath);
+        const commandRunner = vi.fn<CommandRunner>().mockReturnValue(result);
+        expect(() =>
             runPackagedSmoke(
                 ["--executable", executablePath],
                 {},
                 commandRunner
             )
-        ).toBe(0);
+        ).toThrow("did not complete");
+        const options = commandRunner.mock.calls[0]![2];
+        rmSync(String(options.env.FFV_SMOKE_DIRECTORY), {
+            force: true,
+            recursive: true,
+        });
+    });
+
+    it.each([
+        undefined,
+        {
+            status: "passed",
+            visible: true,
+        },
+        {
+            status: "passed",
+            visible: true,
+            activity: null,
+        },
+        {
+            status: "passed",
+            visible: true,
+            activity: "untrusted report data",
+        },
+        {
+            nonce: "forged",
+            status: "passed",
+            visible: true,
+            activity: { recordCount: 1, sessionCount: 1 },
+        },
+        {
+            status: "failed",
+            visible: true,
+            activity: { recordCount: 1, sessionCount: 1 },
+        },
+        {
+            status: "passed",
+            visible: false,
+            activity: { recordCount: 1, sessionCount: 1 },
+        },
+        {
+            status: "passed",
+            visible: true,
+            activity: { recordCount: 0, sessionCount: 1 },
+        },
+        {
+            status: "passed",
+            visible: true,
+            activity: {
+                recordCount: 1285,
+                sessionCount: 1,
+                appInitialized: false,
+                mapReady: true,
+                routeCount: 58,
+            },
+        },
+        {
+            status: "passed",
+            visible: true,
+            activity: {
+                recordCount: 1285,
+                sessionCount: 1,
+                appInitialized: true,
+                mapReady: false,
+                routeCount: 0,
+            },
+        },
+    ])("rejects missing or invalid readiness evidence %j", (report) => {
+        expect.assertions(1);
+        const executablePath = path.join(createTemporaryRoot(), "app.exe");
+        writeExecutable(executablePath);
+        const commandRunner = vi
+            .fn<CommandRunner>()
+            .mockImplementation((_command, _args, options) => {
+                if (report)
+                    writeFileSync(
+                        path.join(
+                            String(options.env.FFV_SMOKE_DIRECTORY),
+                            "report.json"
+                        ),
+                        JSON.stringify({
+                            nonce: options.env.FFV_SMOKE_NONCE,
+                            ...report,
+                        })
+                    );
+                return { status: 0 };
+            });
+        expect(() =>
+            runPackagedSmoke(
+                ["--executable", executablePath],
+                {},
+                commandRunner
+            )
+        ).toThrow(/readiness report/u);
+        const options = commandRunner.mock.calls[0]![2];
+        rmSync(String(options.env.FFV_SMOKE_DIRECTORY), {
+            force: true,
+            recursive: true,
+        });
+    });
+
+    it.each([
+        [
+            "FFV_SMOKE_EXPECTED_ARCH",
+            "arm64",
+            "architecture",
+        ],
+        [
+            "FFV_SMOKE_EXPECTED_VERSION",
+            "30.0.4",
+            "version",
+        ],
+    ])("checks reported identity against %s", (key, value, failure) => {
+        expect.assertions(1);
+        const executablePath = path.join(createTemporaryRoot(), "app.exe");
+        writeExecutable(executablePath);
+        const commandRunner = vi
+            .fn<CommandRunner>()
+            .mockImplementation((_command, _args, options) => {
+                writeFileSync(
+                    path.join(
+                        String(options.env.FFV_SMOKE_DIRECTORY),
+                        "report.json"
+                    ),
+                    JSON.stringify({
+                        nonce: options.env.FFV_SMOKE_NONCE,
+                        status: "passed",
+                        visible: true,
+                        activity: {
+                            recordCount: 1285,
+                            sessionCount: 1,
+                            appInitialized: true,
+                            mapReady: true,
+                            routeCount: 58,
+                        },
+                        arch: "x64",
+                        version: "30.0.3",
+                    })
+                );
+                return { status: 0 };
+            });
+        expect(() =>
+            runPackagedSmoke(
+                ["--executable", executablePath],
+                { [key]: value },
+                commandRunner
+            )
+        ).toThrow(failure);
+        rmSync(
+            String(commandRunner.mock.calls[0]![2].env.FFV_SMOKE_DIRECTORY),
+            { force: true, recursive: true }
+        );
+    });
+
+    it("never excuses failed HTML loading based on a display log", () => {
+        expect.assertions(1);
+        const executablePath = path.join(createTemporaryRoot(), "app.exe");
+        writeExecutable(executablePath);
+        const commandRunner = vi.fn<CommandRunner>().mockReturnValue({
+            status: 0,
+            stderr: "Window displayed successfully\nError loading main HTML file ERR_FAILED",
+        });
+        expect(() =>
+            runPackagedSmoke(
+                ["--executable", executablePath],
+                {},
+                commandRunner
+            )
+        ).toThrow("failure marker");
+        rmSync(
+            String(commandRunner.mock.calls[0]![2].env.FFV_SMOKE_DIRECTORY),
+            { force: true, recursive: true }
+        );
     });
 
     it("disables Chromium's setuid sandbox only on Linux CI runners", () => {
         expect.assertions(3);
-
-        expect(getPackagedLaunchArgs({ CI: "true" }, "linux")).toStrictEqual([
-            "--disable-http-cache",
-            "--no-sandbox",
-        ]);
-        expect(getPackagedLaunchArgs({}, "linux")).toStrictEqual([
-            "--disable-http-cache",
-        ]);
-        expect(getPackagedLaunchArgs({ CI: "true" }, "darwin")).toStrictEqual([
-            "--disable-http-cache",
-        ]);
+        expect(getPackagedLaunchArgs({ CI: "true" }, "linux")).toContain(
+            "--no-sandbox"
+        );
+        expect(getPackagedLaunchArgs({}, "linux")).not.toContain(
+            "--no-sandbox"
+        );
+        expect(getPackagedLaunchArgs({ CI: "true" }, "darwin")).not.toContain(
+            "--no-sandbox"
+        );
     });
 
-    it("fails when packaged startup output contains fatal renderer or asset errors", () => {
+    it.each([
+        "1000oops",
+        "1500.5",
+        "999",
+        "Infinity",
+    ])("rejects invalid timeout %s", (timeout) => {
         expect.assertions(1);
-
-        const releaseDistPath = createTemporaryRoot();
-        const executablePath = path.join(
-            releaseDistPath,
-            "win-unpacked",
-            "Fit File Viewer.exe"
+        expect(() => parseArgs(["--startup-timeout-ms", timeout])).toThrow(
+            "integer >= 1000"
         );
-        writeExecutable(executablePath);
-
-        const commandRunner = vi.fn<CommandRunner>().mockReturnValue({
-            error: Object.assign(new Error("timed out"), {
-                code: "ETIMEDOUT",
-            }),
-            status: null,
-            stderr: "Failed to load URL: file:///app.asar/dist/index.html",
-        });
-
-        expect(() =>
-            runPackagedSmoke(
-                ["--executable", executablePath],
-                {},
-                commandRunner
-            )
-        ).toThrow("Failed to load URL");
-    });
-
-    it("accepts a macOS HTML load rejection caused by timeout shutdown after display", () => {
-        expect.assertions(1);
-
-        const releaseDistPath = createTemporaryRoot();
-        const executablePath = path.join(
-            releaseDistPath,
-            "mac",
-            "Fit File Viewer.app",
-            "Contents",
-            "MacOS",
-            "Fit File Viewer"
-        );
-        writeExecutable(executablePath);
-
-        const commandRunner = vi.fn<CommandRunner>().mockReturnValue({
-            error: Object.assign(new Error("timed out"), {
-                code: "ETIMEDOUT",
-            }),
-            status: 0,
-            stderr: [
-                "[main.js] Window displayed successfully",
-                "[main.js] Error loading main HTML file ERR_FAILED (-2)",
-            ].join("\n"),
-        });
-
-        expect(
-            runPackagedSmoke(
-                ["--executable", executablePath],
-                {},
-                commandRunner
-            )
-        ).toBe(0);
-    });
-
-    it("rejects an HTML load failure when the packaged window never displayed", () => {
-        expect.assertions(1);
-
-        const releaseDistPath = createTemporaryRoot();
-        const executablePath = path.join(
-            releaseDistPath,
-            "mac",
-            "Fit File Viewer.app",
-            "Contents",
-            "MacOS",
-            "Fit File Viewer"
-        );
-        writeExecutable(executablePath);
-
-        const commandRunner = vi.fn<CommandRunner>().mockReturnValue({
-            error: Object.assign(new Error("timed out"), {
-                code: "ETIMEDOUT",
-            }),
-            status: 0,
-            stderr: "[main.js] Error loading main HTML file ERR_FAILED (-2)",
-        });
-
-        expect(() =>
-            runPackagedSmoke(
-                ["--executable", executablePath],
-                {},
-                commandRunner
-            )
-        ).toThrow('failure marker "error loading main html file"');
-    });
-
-    it("fails when the packaged executable exits before the startup window", () => {
-        expect.assertions(1);
-
-        const releaseDistPath = createTemporaryRoot();
-        const executablePath = path.join(
-            releaseDistPath,
-            "win-unpacked",
-            "Fit File Viewer.exe"
-        );
-        writeExecutable(executablePath);
-
-        const commandRunner = vi.fn<CommandRunner>().mockReturnValue({
-            status: 0,
-        });
-
-        expect(() =>
-            runPackagedSmoke(
-                [
-                    "--executable",
-                    executablePath,
-                    "--startup-timeout-ms",
-                    "1000",
-                ],
-                {},
-                commandRunner
-            )
-        ).toThrow("exited before the 1000ms startup smoke window");
     });
 });

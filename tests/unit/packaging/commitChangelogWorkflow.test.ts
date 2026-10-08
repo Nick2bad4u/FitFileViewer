@@ -152,7 +152,7 @@ describe("commit-changelog-workflow script", () => {
                 `add ${rootChangelogPath}`,
                 "diff --staged --quiet",
                 "commit -m 📝 [docs] Update changelog for v30.0.0 [skip ci]",
-                "push origin release",
+                "push origin HEAD:refs/heads/release",
             ],
             didCommit: true,
             messages: ["Changelogs updated and pushed to repository"],

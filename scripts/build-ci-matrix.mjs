@@ -77,58 +77,23 @@ export function getDryRunSummary(options) {
 }
 
 export function getElectronBuilderArgs({ arch, matrixOs, runnerOs }) {
-    if (runnerOs === "Windows") {
-        return getWindowsBuilderArgs(arch);
+    const platform = { Windows: "win", macOS: "mac", Linux: "linux" }[runnerOs];
+    const supported = {
+        Windows: ["x64", "ia32"],
+        macOS: [
+            "x64",
+            "arm64",
+            "universal",
+        ],
+        Linux: ["x64", "arm64"],
+    }[runnerOs];
+    if (!platform || !supported.includes(arch)) {
+        throw new Error(
+            `Unsupported build matrix: ${runnerOs}/${arch} (${matrixOs})`
+        );
     }
-
-    if (matrixOs === "macos-15") {
-        return [
-            "--arm64",
-            "--publish",
-            "never",
-        ];
-    }
-
-    if (matrixOs === "macos-latest") {
-        return [
-            "--universal",
-            "--publish",
-            "never",
-        ];
-    }
-
-    if (matrixOs === "macos-15-intel") {
-        return [
-            "--mac",
-            `--${arch}`,
-            "--publish",
-            "never",
-        ];
-    }
-
-    if (matrixOs === "windows-latest") {
-        return getWindowsBuilderArgs(arch);
-    }
-
-    if (matrixOs === "ubuntu-24.04-arm") {
-        return [
-            "--linux",
-            "--arm64",
-            "--publish",
-            "never",
-        ];
-    }
-
-    if (matrixOs === "ubuntu-latest") {
-        return [
-            "--linux",
-            `--${arch}`,
-            "--publish",
-            "never",
-        ];
-    }
-
     return [
+        `--${platform}`,
         `--${arch}`,
         "--publish",
         "never",
@@ -329,23 +294,6 @@ export function shouldRetryElectronBuilder({ matrixOs }) {
         "macos-latest",
         "macos-15-intel",
     ].includes(matrixOs);
-}
-
-function getWindowsBuilderArgs(arch) {
-    if (arch === "x64") {
-        return [
-            "--win",
-            "--publish",
-            "never",
-        ];
-    }
-
-    return [
-        "--win",
-        "--ia32",
-        "--publish",
-        "never",
-    ];
 }
 
 function printUsage() {

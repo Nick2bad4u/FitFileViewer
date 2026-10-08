@@ -14,6 +14,8 @@ import { FullScreen } from "leaflet.fullscreen";
 import "leaflet.fullscreen/dist/Control.FullScreen.css";
 /* eslint-enable import-x/no-unassigned-import */
 import { LocateControl } from "leaflet.locatecontrol";
+import { setWorkerUrl } from "maplibre-gl";
+import mapLibreWorkerSource from "maplibre-gl/dist/maplibre-gl-worker.mjs?raw";
 /* eslint-disable import-x/no-unassigned-import -- Leaflet control stylesheets must be loaded through the bundle entry. */
 import "leaflet.locatecontrol/dist/L.Control.Locate.css";
 /* eslint-enable import-x/no-unassigned-import */
@@ -27,10 +29,17 @@ import {
     type RendererVendorMapRuntime,
 } from "./rendererVendorMapRuntime.js";
 import { markRendererVendorEntryLoaded } from "./rendererVendorShared.js";
-import {
-    registerMapLibreLayerFactory,
-    resolveMapLibreLayerFactoryFromCandidate,
-} from "../utils/maps/layers/mapLibreLayerRuntime.js";
+import { resolveMapLibreLayerFactoryFromCandidate } from "../utils/maps/layers/mapLibreLayerRuntime.js";
+
+// Chromium cannot start a worker directly from the app's file:// origin.
+// MapLibre 6.13+ ships a self-contained worker; keep its blob URL for the
+// renderer lifetime so workers can restart after the last map is removed.
+// The production CSP already permits blob workers, with webSecurity enabled.
+setWorkerUrl(
+    URL.createObjectURL(
+        new Blob([mapLibreWorkerSource], { type: "text/javascript" })
+    )
+);
 
 const leafletRuntime = Leaflet as typeof Leaflet & {
     Control: typeof Leaflet.Control & {
@@ -95,14 +104,14 @@ export async function installRendererMapVendorEntry(
     await import("@maplibre/maplibre-gl-leaflet");
     const mapLibreLayerFactory =
         resolveMapLibreLayerFactoryFromCandidate(leafletRuntime);
-    if (mapLibreLayerFactory) {
-        registerMapLibreLayerFactory(mapLibreLayerFactory);
+    if (!mapLibreLayerFactory) {
+        throw new Error("MapLibre Leaflet layer factory did not initialize");
     }
     installLeafletMeasureLite(Leaflet);
     runtime.removeTemporaryLeafletGlobals();
 
     markRendererVendorEntryLoaded("map", {
-        map: { leafletRuntime: Leaflet },
+        map: { leafletRuntime: Leaflet, mapLibreLayerFactory },
     });
 }
 

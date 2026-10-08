@@ -10,6 +10,7 @@ import type {
 import type { DomPurifyRuntime } from "../utils/dom/domPurifyRuntime.js";
 import type { ExportZipConstructor } from "../utils/files/export/exportZipRuntime.js";
 import type { RegisteredLeafletRuntime } from "../utils/maps/core/leafletRuntime.js";
+import type { MapLibreLayerFactory } from "../utils/maps/layers/mapLibreLayerRuntime.js";
 import type { ArqueroRuntime } from "../utils/rendering/helpers/arqueroRuntime.js";
 import type { RegisteredDataTableRuntime } from "../utils/rendering/core/dataTableRuntime.js";
 import type { ScreenfullRuntime } from "../utils/ui/controls/screenfullRuntime.js";
@@ -50,6 +51,7 @@ export type RendererVendorCoreRuntimePayload = Readonly<{
 
 export type RendererVendorMapRuntimePayload = Readonly<{
     leafletRuntime: RegisteredLeafletRuntime;
+    mapLibreLayerFactory: MapLibreLayerFactory;
 }>;
 
 export const rendererVendorEntryLoadedEventName =
