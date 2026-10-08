@@ -98,7 +98,9 @@ function validateNodes(item, lock) {
 
 function validateSummary(report) {
     const counts = report.metadata?.vulnerabilities;
-    requireAuditCondition(isRecord(counts), "Missing audit summary metadata");
+    if (!isRecord(counts)) {
+        throw new Error("Missing audit summary metadata");
+    }
     const items = Object.values(report.vulnerabilities);
     requireAuditCondition(
         counts.total === items.length,
