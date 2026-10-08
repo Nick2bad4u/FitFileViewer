@@ -502,6 +502,16 @@ verification outcome are visible after the job completes. In GitHub Actions,
 the verifier also appends the same status, artifact list, and verifier command
 results to the job summary through `GITHUB_STEP_SUMMARY`.
 
+### Dependency Audits
+
+The release gate runs `npm run audit` with the existing moderate application
+threshold and high documentation threshold. The approved temporary exceptions
+cover only assessed `braces@3.0.3` build paths and application development
+`sprintf-js@1.1.3` paths. Exact advisory, version, integrity, and dependency-scope
+checks prevent these exceptions from accepting new findings or runtime use.
+See [Dependency Audits](../docusaurus/docs/development/dependency-audits.md) for
+the reachability assessment, constraints, and removal requirements.
+
 ### Release Rehearsal
 
 Before tagging a release, run the manual GitHub Actions workflow **Release

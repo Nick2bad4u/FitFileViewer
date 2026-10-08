@@ -125,6 +125,10 @@ Run `npm run release:verify`, then dispatch **Release Rehearsal** on the
 candidate branch. Check every platform result and the Windows installer
 upgrade workflow before publishing.
 
+The audit gate retains moderate application and high documentation thresholds.
+Review the exact temporary build-tool exceptions and their removal conditions in
+[Dependency Audits](./dependency-audits.md) before each release.
+
 The packaged smoke test requires a fresh completion report after renderer
 initialization, preload IPC, real FIT decoding, and visible map rendering.
 Crashes, signals, timeouts, and missing or stale reports fail the test.

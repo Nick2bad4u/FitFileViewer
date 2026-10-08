@@ -1,0 +1,154 @@
+{
+    "advisories": [
+        {
+            "name": "braces",
+            "range": "<=3.0.3",
+            "severity": "high",
+            "url": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm"
+        }
+    ],
+    "approvedAt": "2026-10-08",
+    "lockName": "fitfileviewer-docs",
+    "minimumSeverity": "high",
+    "nodes": {
+        "node_modules/@docusaurus/babel": {
+            "integrity": "sha512-aJ1hpGyvfkte3dDAfNbWM4biW4yWZBVz7TIGLZP+v+tWOBgxX3e0N5ZIXHIvmfNNXTI77pcHUx3KmtOk05Ze3Q==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/bundler": {
+            "integrity": "sha512-i0ZNcy0f0WhaOlYVgzLsWhIoEXO9kS3HRoKPtgE6vQtZUq7arKZaYdNBudr3mqCmd+TyOkwtwfHgs1ENj07r5g==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/core": {
+            "integrity": "sha512-EYByj6nk+aD9KeVxV6Hmo2/nAAT79P21Y82ycTBOBtrmqilloIbIEhgL2/8Xpt2Jz/pgNqHAwyusOGwmbKeJmA==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/mdx-loader": {
+            "integrity": "sha512-9Fd4V/SFjfrVQ0JH5EN0+iPWyFunvTeQE3gfyFeetqPaXMP0OylIjOw16dCuXG4NZJrYdBqwzjh18/h3gRi47w==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/plugin-content-blog": {
+            "integrity": "sha512-0cbEnNKf0InmLkhj/+nVRmqEnWEoOE8Mh+2x1qOXI0qYpCnphq4RXknVJ8BvybKRXqYVvbmdMfiJSup+k4tm5w==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/plugin-content-docs": {
+            "integrity": "sha512-Sqwl4FPoZBDrlY8I2VU2H8O0M91CHp9T8ToMSkTZmjvHCif+1laqfXi6sTk8IfyVS/trN5yNjcWd1bFsGB6W5Q==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/plugin-content-pages": {
+            "integrity": "sha512-h5R12sZ/vV9EPiVjvIl9YFCOwkpwXes7dQMYt3EvP6Pphu4amHxxTqWxf08Fl5DR8h+oZMbWpFTNw5vKEYfvzQ==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/plugin-css-cascade-layers": {
+            "integrity": "sha512-UkdvQby5OQUKWrw3lLnSTJXQ6VETaUVTuPQX9AABtmFm5h+ifEBx1OQ+LN726Q4byuwBf2ElHkf4qU4hTxdvRg==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/plugin-debug": {
+            "integrity": "sha512-8vbZNOSCpnsT57EY6CgN7sgRVmx3KTYwO8Uvo2pbxOyb8tbqAwtT9SslqaQ41HbA1v1hpn5RP7u5s2KvRwAFpQ==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/plugin-google-analytics": {
+            "integrity": "sha512-kMHMBK9j4VAtgd5owwrRLRIi0EjkrpXlX7ePj1+y68XfVZV9I1T4S+koPDm+Hfw2TtnyHvh0uNrDvjz+DjQGVA==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/plugin-google-gtag": {
+            "integrity": "sha512-Vt90nNFhtAChRe9+it1hcHFgFvETdSnOkL5Bma+p6E/yU2tAYrvvyk+gv+LJGM2ZUkyKuKXLRsZ2Lb0bO7+Vog==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/plugin-google-tag-manager": {
+            "integrity": "sha512-MLCffCldysi/R0nzJQP7ZWd0xAoGNnSTiVOo6TTR6mKVGFhE+/XArGe67ZcaZv1uytgQXoXs92VJrgVDrz80rQ==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/plugin-sitemap": {
+            "integrity": "sha512-PODkwg5XetLML3hU/3xpCKJUZ9cqExLaBnD/Fzzwj2VHogLeqnDisLIujae87zuze7T4mCm2A6KEqZkyiz07EQ==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/plugin-svgr": {
+            "integrity": "sha512-JgfT3jWM0TJ8Uw0cEcqxHpybngQY1vlBYpuuNO+gEh5iPh5Ar+vxq/u9CFrYsWeXy48BN7Db76Pzp2edNXUQ8A==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/preset-classic": {
+            "integrity": "sha512-a4B3VczmDl99zK0EufDQYomdJ186WDingjmDXxhN2PNPS9Ty/Y2M5CLFX1KQMRKqRTLiRDKfutzG5IY1FC/ceg==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/theme-classic": {
+            "integrity": "sha512-JqTSLQmqmA9uKWZsD5iwBGJ4JyKB4/yTw6PsSXVPRJG/6GAm/u+add9Iip+hvwP12/AnPNztrdxsI14NJW4KeA==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/theme-common": {
+            "integrity": "sha512-R9b/vMpK1yye6hNZTA6x/ivRv+at6GhxnXcxkpzCGzO1R1RwiquqiFg2wMFh6aqlJTpWRFKpFD2TzCDQcyOU0A==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/theme-live-codeblock": {
+            "integrity": "sha512-rBWmjCFaInkWENi4EjHX4lgwN6uBfVurN8SdK0evZ5LwjIiAdVRTRkmnWNPswiud3UfdSeNalaLQl62Ks9d+pA==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/theme-mermaid": {
+            "integrity": "sha512-Stssh5MYQJ+EdYugUXf+ZcpeJFQPKXf0KCd/SWp10o3CmXNaOoh5IEgVjVqY1e1XhQf3on4+Y4BnrMiD95E2SQ==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/theme-search-algolia": {
+            "integrity": "sha512-1msxllyhi/5m77JukXtp5UFnUAriwZIC1oJ7MTnpQpCwLTbclJi5BK5n28CTZuSXpQN2ewbbnqRgAhMM6c6ihg==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/utils": {
+            "integrity": "sha512-xx0W3eav2uW1NRIpuHJWNwLTC15xPNjU4Uxi9NSnd3swYC96BE3vFiT93SD8s24kmAAWNwgZwfZ2fghGZ01Lcw==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/utils-validation": {
+            "integrity": "sha512-sn8unbDfUL585NtR3cwHefPicOyaHvPaX7VD0aOg/siIxUBoKyKKaGEqzJZDS64mM43TnxurkYDtmB1wsJlZsw==",
+            "version": "3.10.2"
+        },
+        "node_modules/@easyops-cn/docusaurus-search-local": {
+            "integrity": "sha512-PlMKmxuonvZ1C+/zJS1hJaF1xaxD1TsUvOMzpP6DdQMtZqmTaYjcLGM12ePzl0m1rp3AgfTBeDbFNHQhwnH/dA==",
+            "version": "0.55.3"
+        },
+        "node_modules/braces": {
+            "integrity": "sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==",
+            "version": "3.0.3"
+        },
+        "node_modules/chokidar": {
+            "integrity": "sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==",
+            "version": "3.6.0"
+        },
+        "node_modules/copy-webpack-plugin": {
+            "integrity": "sha512-fX2MWpamkW0hZxMEg0+mYnA40LTosOSa5TqZ9GYIBzyJa9C3QUaMPSE2xAi/buNr8u89SfD9wHSQVBzrRa/SOQ==",
+            "version": "11.0.0"
+        },
+        "node_modules/copy-webpack-plugin/node_modules/globby": {
+            "integrity": "sha512-Y1zNGV+pzQdh7H39l9zgB4PJqjRNqydvdYCDG4HFXM4XuvSaQQlEc91IU1yALL8gUTDomgBAfz3XJdmUS+oo0w==",
+            "version": "13.2.2"
+        },
+        "node_modules/docusaurus-plugin-copy-page-button": {
+            "integrity": "sha512-OBWmUEFIqR3BJ5giae6D518b69ZfZQ5HKrazrY2IPA6tDNX2F3m1ejeyE0oqcVcE7GVkE+K0+vJ5T+kIos8u1w==",
+            "version": "0.8.4"
+        },
+        "node_modules/docusaurus-plugin-llms": {
+            "integrity": "sha512-jYlj2HJ5+gu7oJZuJ83Hk8KlB65YlZZ/7UpHXiL7Qr+qpNBkVocmt2Molc6F3HNr5RqcfhWD/98CvgyNztg/ow==",
+            "version": "0.4.0"
+        },
+        "node_modules/fast-glob": {
+            "integrity": "sha512-7MptL8U0cqcFdzIzwOTHoilX9x5BrNqye7Z/LuC7kCMRio1EMSyqRK3BEAUD7sXRq4iT4AzTVuZdhgQ2TCvYLg==",
+            "version": "3.3.3"
+        },
+        "node_modules/globby": {
+            "integrity": "sha512-jhIXaOzy1sb8IyocaruWSn1TjmnBVs8Ayhcy83rmxNJ8q2uWKCAj3CnJY+KpGSXCueAPc0i05kVvVKtP1t9S3g==",
+            "version": "11.1.0"
+        },
+        "node_modules/http-proxy-middleware": {
+            "integrity": "sha512-RKzRWNPxUZqbuk3BC5mGVJbBnWgr+diEnjJexIOytFbBzDy88Fbh/YvBr3DsNrl1jYAfjWfpATEv0NO35FDuPQ==",
+            "version": "2.0.10"
+        },
+        "node_modules/micromatch": {
+            "integrity": "sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==",
+            "version": "4.0.8"
+        },
+        "node_modules/webpack-dev-server": {
+            "integrity": "sha512-HNLRmamRvVavZQ+avceZifmv8hmdUjg43t6MI4SqJDwFdW7RPQwH5vzGhDRZSX59SgfbeHhLnq3g+uooWo7pVw==",
+            "version": "5.2.6"
+        }
+    },
+    "removalCondition": "Remove when a compatible upstream fix is available; reassess before every release and whenever affected graph scope or exposure changes.",
+    "requireDevOnly": false,
+    "scope": "docs"
+}

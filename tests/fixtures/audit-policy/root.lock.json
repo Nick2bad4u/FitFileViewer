@@ -1,0 +1,77 @@
+{
+    "lockfileVersion": 3,
+    "name": "fitfileviewer",
+    "packages": {
+        "node_modules/app-builder-lib": {
+            "dev": true,
+            "integrity": "sha512-wfL7EhujuODDW3uMSD8RPcr/MLzmT0dmpVfWV0wFUWXI0rIdaukzAJ7EFUSyHXOpxuBZqaIGlQt6VeQhtHhetw==",
+            "version": "26.17.0"
+        },
+        "node_modules/app-builder-lib/node_modules/@electron/get": {
+            "dev": true,
+            "integrity": "sha512-F+nKc0xW+kVbBRhFzaMgPy3KwmuNTYX1fx6+FxxoSnNgwYX6LD7AKBTWkU0MQ6IBoe7dz069CNkR673sPAgkCQ==",
+            "version": "3.1.0"
+        },
+        "node_modules/astro-eslint-parser/node_modules/fast-glob": {
+            "dev": true,
+            "integrity": "sha512-7MptL8U0cqcFdzIzwOTHoilX9x5BrNqye7Z/LuC7kCMRio1EMSyqRK3BEAUD7sXRq4iT4AzTVuZdhgQ2TCvYLg==",
+            "version": "3.3.3"
+        },
+        "node_modules/braces": {
+            "dev": true,
+            "integrity": "sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==",
+            "version": "3.0.3"
+        },
+        "node_modules/dmg-builder": {
+            "dev": true,
+            "integrity": "sha512-EAw1f2iGkICmUvAVBOjm7v5mxJdB7/+OZSycHFhKBimiTkCXtvkCC6wBKzHo7ZQYi58C2MmwIleRbgRnROlK2Q==",
+            "version": "26.17.0"
+        },
+        "node_modules/electron-builder-squirrel-windows": {
+            "dev": true,
+            "integrity": "sha512-uyh+D+B0m12qCRp9c/7dwBirHTh7JcvAzj5eTEbb4dXPPGAhYPx1nozzbu1fC6AdULfat6ZNqgWhipTFpb82lQ==",
+            "version": "26.17.0"
+        },
+        "node_modules/fast-glob": {
+            "dev": true,
+            "integrity": "sha512-kNFPyjhh5cKjrUltxs+wFx+ZkbRaxxmZ+X0ZU31SOsxCEtP9VPgtq2teZw1DebupL5GmDaNQ6yKMMVcM41iqDg==",
+            "version": "3.3.1"
+        },
+        "node_modules/global-agent": {
+            "dev": true,
+            "integrity": "sha512-PT6XReJ+D07JvGoxQMkT6qji/jVNfX/h364XHZOWeRzy64sSFr+xJ5OX7LI3b4MPQzdL4H8Y8M0xzPpsVMwA8Q==",
+            "version": "3.0.0"
+        },
+        "node_modules/global-agent/node_modules/roarr": {
+            "dev": true,
+            "integrity": "sha512-CHhPh+UNHD2GTXNYhPWLnU8ONHdI+5DI+4EYIAOaiD63rHeYlZvyh8P+in5999TTSFgUYuKUAjzRI4mdh/p+2A==",
+            "version": "2.15.4"
+        },
+        "node_modules/katex": {
+            "dev": true,
+            "integrity": "sha512-Eeo8Ys1doU1z+x8AZsPpQu+p/QcZBI5PeOo7QGQdy2x2m0MU/hYagBbGOmXwr5KVbEfVuWv9LpnQWeehogurjg==",
+            "version": "0.16.47"
+        },
+        "node_modules/micromatch": {
+            "dev": true,
+            "integrity": "sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==",
+            "version": "4.0.8"
+        },
+        "node_modules/sprintf-js": {
+            "dev": true,
+            "integrity": "sha512-Oo+0REFV59/rz3gfJNKQiBlwfHaSESl1pcGyABQsnnIfWOFt6JNj5gCog2U6MLZ//IGYD+nA8nI+mTShREReaA==",
+            "version": "1.1.3"
+        },
+        "node_modules/stylelint": {
+            "dev": true,
+            "integrity": "sha512-xVQwyiuxALUBNB2fBe0tmNemg9KqLtdj3T64mioFDar79B2cU8LIyz+3KL6LdiHs9NkeNfwxpKSaIVOY8f112g==",
+            "version": "17.14.1"
+        },
+        "node_modules/stylelint/node_modules/fast-glob": {
+            "dev": true,
+            "integrity": "sha512-7MptL8U0cqcFdzIzwOTHoilX9x5BrNqye7Z/LuC7kCMRio1EMSyqRK3BEAUD7sXRq4iT4AzTVuZdhgQ2TCvYLg==",
+            "version": "3.3.3"
+        }
+    },
+    "version": "30.0.2"
+}

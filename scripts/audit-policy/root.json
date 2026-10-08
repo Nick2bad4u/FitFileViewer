@@ -1,0 +1,336 @@
+{
+    "advisories": [
+        {
+            "name": "braces",
+            "range": "<=3.0.3",
+            "severity": "high",
+            "url": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm"
+        },
+        {
+            "name": "sprintf-js",
+            "range": "<=1.1.3",
+            "severity": "moderate",
+            "url": "https://github.com/advisories/GHSA-hp3w-g68c-fv3c"
+        }
+    ],
+    "approvedAt": "2026-10-08",
+    "lockName": "fitfileviewer",
+    "minimumSeverity": "moderate",
+    "nodes": {
+        "node_modules/@codecov/bundle-analyzer": {
+            "integrity": "sha512-SkL0+Ccs6VuHIA9Bxb8/J110CffRXpqtKt7m18FTWC0P6gDKEsoieUerDdcd6K9BFKujj6gaUdTt5i4I/v8GTA==",
+            "version": "2.0.1"
+        },
+        "node_modules/@csstools/stylelint-formatter-github": {
+            "integrity": "sha512-LAzHf7W1FmBNi/cA4n7ZqGW063UK+KZgcaoAmtkJZlbAxRlnthA/VEojmO06+eBAczKMMU1yslqsDh6Etvok8g==",
+            "version": "2.0.0"
+        },
+        "node_modules/@docusaurus/eslint-plugin": {
+            "integrity": "sha512-dLUOOA4SBR1IawNQxaPBO4+h5swGJIhh39MitDtyKJh4GFl+srLk6xs417YH/+aQCNemm1rv+cRt5RVzQekE8w==",
+            "version": "3.10.2"
+        },
+        "node_modules/@docusaurus/eslint-plugin/node_modules/@typescript-eslint/typescript-estree": {
+            "integrity": "sha512-CmcQ6uY7b9y694lKdRB8FEel7JbU/40iSAPomu++SjLMntB+2Leay2LO6i8VnJk58MtE9/nQSFIH6jpyRWyYzA==",
+            "version": "5.62.0"
+        },
+        "node_modules/@docusaurus/eslint-plugin/node_modules/@typescript-eslint/utils": {
+            "integrity": "sha512-n8oxjeb5aIbPFEtmQxQYOLI0i9n5ySBEY/ZEHHZqKQSFnxio1rv6dthascc9dLuwrL0RC5mPCxB7vnAVGAYWAQ==",
+            "version": "5.62.0"
+        },
+        "node_modules/@double-great/stylelint-a11y": {
+            "integrity": "sha512-tzCK6ItlIiUJwGnATxO54ELtSaQwiMtghhIy6G5umOsp6wTPyMfTUKXt9g/TIGO2+APG1NM4V/V3aiG5W6R8Rw==",
+            "version": "3.5.2"
+        },
+        "node_modules/@next/eslint-plugin-next": {
+            "integrity": "sha512-szW9y2Aumu4z88YXfTzcFsgUAg2k64uzbtcO5L9f1AKS4w/GUKJcbFllRflROVyNPgJtGOnvNxiyp3v6b+prIA==",
+            "version": "16.3.4"
+        },
+        "node_modules/@secretlint/secretlint-rule-pattern": {
+            "integrity": "sha512-O5FasZpXq8WZ6GPcqiPYDxyJTr1Bx+WjXC3lXd3mpbYb1abEuETDLNuu3AWOtp2Bh39TXQVvj40lX+NcWzus6Q==",
+            "version": "13.0.5"
+        },
+        "node_modules/@stylelint-types/stylelint-order": {
+            "integrity": "sha512-jc9elOvmn2UoL+wzzWtHmezhAZPOJn6hWQ9Prct+FOxzY9XafssQEOUcs4T4DJ2RA+rxk9GockujWjbGtqj4FA==",
+            "version": "8.1.1"
+        },
+        "node_modules/@stylelint-types/stylelint-stylistic": {
+            "integrity": "sha512-0TTMsiD/upUM5339xYovkWlTD7tN9UMHCD4ul8/qtFOeqwCmttfv7/i8gMQrvGVsZ+EqSxzyQKNn17Rroarwmg==",
+            "version": "5.1.0"
+        },
+        "node_modules/@stylistic/stylelint-plugin": {
+            "integrity": "sha512-xbyxPeaO9Vns6A8/0MQV6PzZ5nNZCoGV4q1ERaNd5EBAKlWt+YcpaPapNYNUkZaiQg98+xPbikdA58ehquJG3g==",
+            "version": "5.3.0"
+        },
+        "node_modules/app-builder-lib": {
+            "integrity": "sha512-wfL7EhujuODDW3uMSD8RPcr/MLzmT0dmpVfWV0wFUWXI0rIdaukzAJ7EFUSyHXOpxuBZqaIGlQt6VeQhtHhetw==",
+            "version": "26.17.0"
+        },
+        "node_modules/app-builder-lib/node_modules/@electron/get": {
+            "integrity": "sha512-F+nKc0xW+kVbBRhFzaMgPy3KwmuNTYX1fx6+FxxoSnNgwYX6LD7AKBTWkU0MQ6IBoe7dz069CNkR673sPAgkCQ==",
+            "version": "3.1.0"
+        },
+        "node_modules/astro-eslint-parser": {
+            "integrity": "sha512-+QDcgc7e+au6EZ0YjMmRRjNoQo5bDMlaR45aWDoFsuxQTCM9qmCHRoiKJPELgckJ8Wmr7vcfpa9eCDHBFh6G4w==",
+            "version": "1.4.0"
+        },
+        "node_modules/astro-eslint-parser/node_modules/fast-glob": {
+            "integrity": "sha512-7MptL8U0cqcFdzIzwOTHoilX9x5BrNqye7Z/LuC7kCMRio1EMSyqRK3BEAUD7sXRq4iT4AzTVuZdhgQ2TCvYLg==",
+            "version": "3.3.3"
+        },
+        "node_modules/braces": {
+            "integrity": "sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==",
+            "version": "3.0.3"
+        },
+        "node_modules/chokidar": {
+            "integrity": "sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==",
+            "version": "3.6.0"
+        },
+        "node_modules/dmg-builder": {
+            "integrity": "sha512-EAw1f2iGkICmUvAVBOjm7v5mxJdB7/+OZSycHFhKBimiTkCXtvkCC6wBKzHo7ZQYi58C2MmwIleRbgRnROlK2Q==",
+            "version": "26.17.0"
+        },
+        "node_modules/electron-builder": {
+            "integrity": "sha512-iYHBRiagS9sDIbZx1ZD113f5rEGQvtpvTvHf70ovHKJ8mRvxwIkWX7JCwfmVQmVS4eX735p7TZmoxHnBPwF3vA==",
+            "version": "26.17.0"
+        },
+        "node_modules/electron-builder-squirrel-windows": {
+            "integrity": "sha512-uyh+D+B0m12qCRp9c/7dwBirHTh7JcvAzj5eTEbb4dXPPGAhYPx1nozzbu1fC6AdULfat6ZNqgWhipTFpb82lQ==",
+            "version": "26.17.0"
+        },
+        "node_modules/eslint-config-nick2bad4u": {
+            "integrity": "sha512-nV2sUWDHcXTSPJuHgz68JLsGq7i9iRoiT6+KygVLpWFMh6LMpWIjvS+rDYIb1fQmoWUOY0UuB+JnOv0i92aK2w==",
+            "version": "1.2.7"
+        },
+        "node_modules/eslint-plugin-astro": {
+            "integrity": "sha512-89xpAn528UKCdmyysbg0AHHqi6sqcK89wXnJIpu4F0mFBN03zATEBNK7pRtMfl6gwtMOm5ECXs+Wz5qDHhwTFw==",
+            "version": "1.7.0"
+        },
+        "node_modules/eslint-plugin-repo": {
+            "integrity": "sha512-W6bBrsVvp7+/0K+zUEzzGOQGm2rJdaKw0py6UldUJUiVHXqK5+tUHSXM+srnxNH5XqaGL4NdDqXbDERA4gnC8Q==",
+            "version": "1.0.12"
+        },
+        "node_modules/eslint-plugin-stylelint-2": {
+            "integrity": "sha512-zr1uU426sK91vJqpqOYCtr+ujYVmQLWxdWgyQ6/ccgz7DqsrHWQ5PBiLOMvla/EgUraP3I9Sog9gTqPamU8EpQ==",
+            "version": "1.1.7"
+        },
+        "node_modules/eslint-plugin-undefined-css-classes": {
+            "integrity": "sha512-Zh+4qZL04e1XjGe0ZJib1ntUbBGdy8VSsGJMVuHJbgxk3MgFK2chB85aQoGNLPkcOoIIB4DwXmj6+CUxuF1zfA==",
+            "version": "0.1.5"
+        },
+        "node_modules/fast-glob": {
+            "integrity": "sha512-kNFPyjhh5cKjrUltxs+wFx+ZkbRaxxmZ+X0ZU31SOsxCEtP9VPgtq2teZw1DebupL5GmDaNQ6yKMMVcM41iqDg==",
+            "version": "3.3.1"
+        },
+        "node_modules/global-agent": {
+            "integrity": "sha512-PT6XReJ+D07JvGoxQMkT6qji/jVNfX/h364XHZOWeRzy64sSFr+xJ5OX7LI3b4MPQzdL4H8Y8M0xzPpsVMwA8Q==",
+            "version": "3.0.0"
+        },
+        "node_modules/global-agent/node_modules/roarr": {
+            "integrity": "sha512-CHhPh+UNHD2GTXNYhPWLnU8ONHdI+5DI+4EYIAOaiD63rHeYlZvyh8P+in5999TTSFgUYuKUAjzRI4mdh/p+2A==",
+            "version": "2.15.4"
+        },
+        "node_modules/globby": {
+            "integrity": "sha512-jhIXaOzy1sb8IyocaruWSn1TjmnBVs8Ayhcy83rmxNJ8q2uWKCAj3CnJY+KpGSXCueAPc0i05kVvVKtP1t9S3g==",
+            "version": "11.1.0"
+        },
+        "node_modules/micromatch": {
+            "integrity": "sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==",
+            "version": "4.0.8"
+        },
+        "node_modules/npm-package-json-lint": {
+            "integrity": "sha512-KvphpY9PVN8Le6spIXH9LXdSPPiaeG6HBk/PRCmtOn8vY/gsnUpXCfFBZBRUpPMVjv7dsfCU2jOPao4ao3Z2Hg==",
+            "version": "10.5.1"
+        },
+        "node_modules/npm-package-json-lint-config-nick2bad4u": {
+            "integrity": "sha512-FIAZB+NaPBJJjt6YCemnigLcdrwlxx6p4E6zmqfk1KA2x1fxthk9OIHRwLdvYhJCD5DBrIKXJjhTKShTSwTwJw==",
+            "version": "1.0.4"
+        },
+        "node_modules/remark-cli": {
+            "integrity": "sha512-2NAEOACoTgo+e+YAaCTODqbrWyhMVmlUyjxNCkTrDRHHQvH6+NbrnqVvQaLH/Q8Ket3v90A43dgAJmXv8y5Tkw==",
+            "version": "12.0.1"
+        },
+        "node_modules/remark-config-nick2bad4u": {
+            "integrity": "sha512-eIOjqCjFrKXWBUUBH0pFvmetwPGvERoLODhOhpI/8IkUXypnvBfbkTgxeQomQPoskzRLG+XJPzKQpl7b2lc5PA==",
+            "version": "1.1.4"
+        },
+        "node_modules/secretlint-config-nick2bad4u": {
+            "integrity": "sha512-SHiHpnu2s29c5F33VnZUkWQpH3jA/V0ZtUB8k9apEJojtIUmkkJI/MfWXgObVKf065ifEG458aWWUE8meNO3Dw==",
+            "version": "1.1.2"
+        },
+        "node_modules/sprintf-js": {
+            "integrity": "sha512-Oo+0REFV59/rz3gfJNKQiBlwfHaSESl1pcGyABQsnnIfWOFt6JNj5gCog2U6MLZ//IGYD+nA8nI+mTShREReaA==",
+            "version": "1.1.3"
+        },
+        "node_modules/stylelint": {
+            "integrity": "sha512-xVQwyiuxALUBNB2fBe0tmNemg9KqLtdj3T64mioFDar79B2cU8LIyz+3KL6LdiHs9NkeNfwxpKSaIVOY8f112g==",
+            "version": "17.14.1"
+        },
+        "node_modules/stylelint-config-alphabetical-order": {
+            "integrity": "sha512-oI72VCiqyuB8X0JZzDTPDoX1eicWwUCrvtXaWiiLNuz6pSnt9yL+ZE+q08BQSZdwlmtneG6eDo/XRCOaOX5ARg==",
+            "version": "2.0.0"
+        },
+        "node_modules/stylelint-config-alphabetical-order/node_modules/stylelint-order": {
+            "integrity": "sha512-GWPei1zBVDDjxM+/BmcSCiOcHNd8rSqW6FUZtqQGlTRpD0Z5nSzspzWD8rtKif5KPdzUG68DApKEV/y/I9VbTw==",
+            "version": "7.0.1"
+        },
+        "node_modules/stylelint-config-html": {
+            "integrity": "sha512-Lk1NPEdUxzHkPv3ehktjpiOk4MPaqQ3H8fkvhxdWlQpaZCm9ze0SoMbRQLqkUxEMfPE1G9/x968uxm/+d2njoA==",
+            "version": "2.0.0"
+        },
+        "node_modules/stylelint-config-idiomatic-order": {
+            "integrity": "sha512-gJjT1nwhgnHS52+mRn+5Iw6keZIPRN4W+vbzct9Elb+tWOo61jC/CzXzAJHvvOYQZqUYItfs2aQ8fU5hnCvuGg==",
+            "version": "10.0.0"
+        },
+        "node_modules/stylelint-config-idiomatic-order/node_modules/stylelint-order": {
+            "integrity": "sha512-0UuKo4+s1hgQ/uAxlYU4h0o0HS4NiQDud0NAUNI0aa8FJdmYHA5ZZTFHiV5FpmE3071e9pZx5j0QpVJW5zOCUA==",
+            "version": "6.0.4"
+        },
+        "node_modules/stylelint-config-nick2bad4u": {
+            "integrity": "sha512-gK4+tOo+B7wf8dxAtXoGfHD297EO9JSj/Z7bI1LT29SbkKPsstEIa05wu8cLnAkkkoc95GMoADJkoVl5ecakpQ==",
+            "version": "1.0.20"
+        },
+        "node_modules/stylelint-config-recess-order": {
+            "integrity": "sha512-ObYusdkXavm8ulgb5xvmU1l8wgCdveNYG12hOTUEdjS8bNhSRggl4or0mE0JaOnQz+Ve2xZemVpwqERCgJbntg==",
+            "version": "7.8.0"
+        },
+        "node_modules/stylelint-config-recommended": {
+            "integrity": "sha512-mxgT2XY6YZ3HWWe3Di8umG6aBmWmHTblTgu/f10rqFXnyWxjKWwNdjSWkgkwCtxIKnqjSJzvFmPT5yabVIRxZg==",
+            "version": "18.0.0"
+        },
+        "node_modules/stylelint-config-recommended-scss": {
+            "integrity": "sha512-x5DVehzJudcwF0od3sGpgkln2PLLranFE7twwbp7dqDINCyZvwzFkMc6TLhNOvazRiVBJYATQLouJY0xPGB8WA==",
+            "version": "17.0.1"
+        },
+        "node_modules/stylelint-config-recommended-vue": {
+            "integrity": "sha512-lLW7hTIMBiTfjenGuDq2kyHA6fBWd/+Df7MO4/AWOxiFeXP9clbpKgg27kHfwA3H7UNMGC7aeP3mNlZB5LMmEQ==",
+            "version": "1.6.1"
+        },
+        "node_modules/stylelint-config-sass-guidelines": {
+            "integrity": "sha512-YJT0X8h0OqyEo7ys3EycV5CGWt2rrkEYE8sHSN6sFnrxbXvHiy4KJFHDOWfyb3eWR6wtYpM+yIyvR2Plc8+pCg==",
+            "version": "13.0.0"
+        },
+        "node_modules/stylelint-config-standard": {
+            "integrity": "sha512-EznGJxOUhtWck2r6dJpbgAdPATIzvpLdK9+i5qPd4Lx70es66TkBPljSg4wN3Qnc6c4h2n+WbUrUynQ3fanjHw==",
+            "version": "40.0.0"
+        },
+        "node_modules/stylelint-config-standard-scss": {
+            "integrity": "sha512-uLJS6xgOCBw5EMsDW7Ukji8l28qRoMnkRch15s0qwZpskXvWt9oPzMmcYM307m9GN4MxuWLsQh4I6hU9yI53cQ==",
+            "version": "17.0.0"
+        },
+        "node_modules/stylelint-config-tailwindcss": {
+            "integrity": "sha512-IeIMivgaB1kxPBgllMzBqyv0g61IwFxxZKo/fDDelfZ/JtPPlSBT04VuOCslk6PIaq5GQvdRnHOP1K3HpxSkeg==",
+            "version": "1.0.1"
+        },
+        "node_modules/stylelint-declaration-block-no-ignored-properties": {
+            "integrity": "sha512-3ml4NgSW6nkHQrk+/ounU7Qljfb7e7FayHzU7Mry6rF9X28RXyPLD2bNn4QVOO7t98d5EGCCVkNbHCZSx+bNUQ==",
+            "version": "3.0.0"
+        },
+        "node_modules/stylelint-declaration-strict-value": {
+            "integrity": "sha512-KSQTXfWboeebH0tw3bZq5ZPLnkUBHvz9PtzAmIaqU7egLvjN7wU/F0tukFBVyGDKQEfDlLNGDNvhI/O1+6KipQ==",
+            "version": "1.12.1"
+        },
+        "node_modules/stylelint-define-config": {
+            "integrity": "sha512-0/A1yQCf1vfeS7j7hoTomYvxcT5GuHIOtaKk9GzVNuCgNotNLqhStwODmjjUHGj4AtfCsUBzNiYiz3CMsOpqrw==",
+            "version": "17.14.0"
+        },
+        "node_modules/stylelint-find-new-rules": {
+            "integrity": "sha512-N+bn85Dr+QirtvxluIZusPDONafdTeX43qnE2QnDUzt3oqNpFGLRCPN3cPhKmV2qtZn/RjsA5b6+/vczYi2F9g==",
+            "version": "6.1.0"
+        },
+        "node_modules/stylelint-formatter-gitlab-code-quality-report": {
+            "integrity": "sha512-CtSrZ782sS5bfjNA0RoX6WUrX2Tn46Bs9dXBF3IyjMFKwVmeAZJvoj0DAjueJ8WhEoK6UHnz6AyNDJBreppobw==",
+            "version": "1.1.0"
+        },
+        "node_modules/stylelint-formatter-pretty": {
+            "integrity": "sha512-39nasPN8QNdMBq2eghI/SwpyVKx8kJGtmE/KJ5oFvCg0ZvZ5qjJbQgEulzC0gT70XZ+iRk7p1W5tE9IBQhFjPw==",
+            "version": "4.0.1"
+        },
+        "node_modules/stylelint-gamut": {
+            "integrity": "sha512-tsNmkvzm4LbeUBOcLIn8A6aDGBanWwcg+3AlBoljlxz0rxxAC3ZHq/sHKso9YLbNlNvCDIMzw8KVtchStOSO8w==",
+            "version": "2.0.1"
+        },
+        "node_modules/stylelint-group-selectors": {
+            "integrity": "sha512-t0FbKdKZFlbb2VFZ1cfU0+TUHlrPz0ORIuFCse1rVCvfYF0H75k4rRj544b1Lz6GTbdI3o1Yivotk8i8T6TvOA==",
+            "version": "1.0.10"
+        },
+        "node_modules/stylelint-high-performance-animation": {
+            "integrity": "sha512-wzxxfxJFyL7UKc91427EHmi6gNRXB0cBdsyCfIuXZFRb6Xv1qw8elNbF61e/tJRoRcavAGsZICivVsHCD3Mhug==",
+            "version": "2.0.0"
+        },
+        "node_modules/stylelint-media-use-custom-media": {
+            "integrity": "sha512-KmrROVhMXd217NM+9PciFp9wu4pNQNx9lpPCqYMBLOVJREi3MbziYJRMP9X5FlaCLfQmbk6so5KdGEzG+4Oe5Q==",
+            "version": "4.1.0"
+        },
+        "node_modules/stylelint-no-browser-hacks": {
+            "integrity": "sha512-InPHdXdwCUw2K7YPpqkMKyPTPAWaECcbhRQYj7GwKOfCE3ZPF9WKNPb9S6WwsH406jWVhaezksRAYGRIVYz3pQ==",
+            "version": "2.0.3"
+        },
+        "node_modules/stylelint-no-unsupported-browser-features": {
+            "integrity": "sha512-sLEe6NUFoWL2vGt6IKKllQEKfKgVxmvTBFs1JVMHKKLWzxtWAXaqSxJvH+j0URM4vLQQqzC/wXc9Kp3XBNKdBw==",
+            "version": "8.1.1"
+        },
+        "node_modules/stylelint-order": {
+            "integrity": "sha512-LqsEB6VggJuu5v10RtkrQsBObcdwBE7GuAOlwfc/LR3VL/w8UqKX2BOLIjhyGt0Gne/njo7gRNGiJAKhfmPMNw==",
+            "version": "8.1.1"
+        },
+        "node_modules/stylelint-plugin-container-query-sanity": {
+            "integrity": "sha512-3AdoHS3mA0Vv9yRR4QWspE+J/Yq6qaY3yQJJc7YS+ZGkgN35LX46llTc612lxNxPNDgxItak3tt1VMUxAp/8wA==",
+            "version": "0.1.4"
+        },
+        "node_modules/stylelint-plugin-css-performance-budget": {
+            "integrity": "sha512-bakOPdkgevTvXeIe3L5wdqAy/fdMtOBcCTOfEcvBz6MutORCmcHtouLr6/w8uYsu/YRXUdbLbHwxqYdmj7Wa9w==",
+            "version": "2.0.7"
+        },
+        "node_modules/stylelint-plugin-defensive-css": {
+            "integrity": "sha512-DhZYjUX3AjMCn6UQx3ksxbvhET7lt7jBu+5q1Z7Db5Lc15aDOIZX4usvSAXQQpnk3SMxGCS20abPr2ipU++iGA==",
+            "version": "2.9.6"
+        },
+        "node_modules/stylelint-plugin-docusaurus": {
+            "integrity": "sha512-DlsyJqnavFdR+ZMmA6553J+nfvCGVXWU0HvgzD8GDddDIy669++sJsJ7vkBBt2FUV5PE3znNysk3nwkHPv1u4Q==",
+            "version": "2.0.5"
+        },
+        "node_modules/stylelint-plugin-font": {
+            "integrity": "sha512-KUXNtgLh3dAhjB7TKQ5N7k4PE5P1EdJG9gAUUwpqALrWiyZQJ8EzQn27CIlG93Z98U4XJ0qcxPre1tX65ZdN6A==",
+            "version": "1.1.7"
+        },
+        "node_modules/stylelint-plugin-grid": {
+            "integrity": "sha512-wugtaZ7SAmIJqDBiNVDpQL9RLv+Ar9emeT0HZ2hER2137xPc0IWdqkU0+yNp+rJtc8urIOocGbKlrQgJsmoyKA==",
+            "version": "1.0.6"
+        },
+        "node_modules/stylelint-plugin-use-baseline": {
+            "integrity": "sha512-8FyloHsa3YXt0y3wVYToV1frYgX/p7GYOCV7EjV/BjiNFzzGnqJvcKK94vNBfI/BOUi1d8L+VdgBqx5zNMF3uw==",
+            "version": "1.4.6"
+        },
+        "node_modules/stylelint-prettier": {
+            "integrity": "sha512-B6V0oa35ekRrKZlf+6+jA+i50C4GXJ7X1PPmoCqSUoXN6BrNF6NhqqhanvkLjqw2qgvrS0wjdpeC+Tn06KN3jw==",
+            "version": "5.0.3"
+        },
+        "node_modules/stylelint-scss": {
+            "integrity": "sha512-6E79Bachv0Iz0gqRUZgdqdXCsiq26DWBWIBNHYtjTmAp3wJu6cp/I37VfW7BPntmh2puF3bY09XWl4HZGrLhzw==",
+            "version": "7.2.0"
+        },
+        "node_modules/stylelint-use-nesting": {
+            "integrity": "sha512-1YeOfI7pMucTO0GKAiBOz12EaNN5qzbbboAli/jDC47nTfNsOVd9c4WmTshQnnaMDRF8ZZ0ovGzBjw0WUE4tvg==",
+            "version": "6.0.2"
+        },
+        "node_modules/stylelint-value-no-unknown-custom-properties": {
+            "integrity": "sha512-eQ1zidKD5t9zMEaskjGUY4W47lH76qMlmsDSmCAPEwtaGzB4Ls7ORTfysC1D6hamp2zFC+vN1vpQ+GFz3Tw3lw==",
+            "version": "6.1.1"
+        },
+        "node_modules/stylelint/node_modules/fast-glob": {
+            "integrity": "sha512-7MptL8U0cqcFdzIzwOTHoilX9x5BrNqye7Z/LuC7kCMRio1EMSyqRK3BEAUD7sXRq4iT4AzTVuZdhgQ2TCvYLg==",
+            "version": "3.3.3"
+        },
+        "node_modules/stylelint/node_modules/globby": {
+            "integrity": "sha512-c8B/VNLmxRcmqqenRA9t+9IyOjf9+V6lTxPaUJLqOCONdQkWZ0ETYgX0qbtJqPsgCNusT9MZ5Jeidw8Eb9tn2g==",
+            "version": "16.2.4"
+        },
+        "node_modules/unified-args": {
+            "integrity": "sha512-WEQghE91+0s3xPVs0YW6a5zUduNLjmANswX7YbBfksHNDGMjHxaWCql4SR7c9q0yov/XiIEdk6r/LqfPjaYGcw==",
+            "version": "11.0.1"
+        }
+    },
+    "removalCondition": "Remove when a compatible upstream fix is available; reassess before every release and whenever affected graph scope or exposure changes.",
+    "requireDevOnly": true,
+    "scope": "root"
+}

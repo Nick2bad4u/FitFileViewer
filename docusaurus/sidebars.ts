@@ -109,6 +109,7 @@ const sidebars = {
                 "development/module-development",
                 "development/testing",
                 "development/build-release",
+                "development/dependency-audits",
             ],
             label: "🛠️ Development",
             link: {
