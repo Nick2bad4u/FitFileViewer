@@ -133,20 +133,12 @@ describe("Universal DMG native verification workflows", () => {
         expect(jobs["release-verification"]).not.toHaveProperty("needs");
     });
 
-    it("validates the current run's source and bytes before native x64 and LaunchServices smoke", () => {
-        expect.assertions(12);
+    it("downloads the current run's exact source and artifact onto native Intel", () => {
+        expect.assertions(5);
         const consumer = readWorkflow("verify-universal-native-intel.yml").jobs[
             "native-intel"
         ];
         const steps = consumer?.steps ?? [];
-        const verifyIndex = steps.findIndex((step) =>
-            step.run?.includes(
-                "node scripts/verify-universal-native-source.mjs"
-            )
-        );
-        const smokeIndex = steps.findIndex(
-            (step) => step.run === "node scripts/run-distributable-smoke.mjs"
-        );
         const download = steps.find((step) =>
             step.uses?.startsWith("actions/download-artifact@")
         );
@@ -160,6 +152,22 @@ describe("Universal DMG native verification workflows", () => {
         );
         expect(download?.with?.["run-id"]).toBe("${{ github.run_id }}");
         expect(download?.with?.["digest-mismatch"]).toBe("error");
+    });
+
+    it("validates source and bytes before required native x64 and LaunchServices smoke", () => {
+        expect.assertions(7);
+        const consumer = readWorkflow("verify-universal-native-intel.yml").jobs[
+            "native-intel"
+        ];
+        const steps = consumer?.steps ?? [];
+        const verifyIndex = steps.findIndex((step) =>
+            step.run?.includes(
+                "node scripts/verify-universal-native-source.mjs"
+            )
+        );
+        const smokeIndex = steps.findIndex(
+            (step) => step.run === "node scripts/run-distributable-smoke.mjs"
+        );
         expect(verifyIndex).toBeGreaterThan(-1);
         expect(smokeIndex).toBeGreaterThan(verifyIndex);
         expect(steps[verifyIndex]?.env).toEqual({
