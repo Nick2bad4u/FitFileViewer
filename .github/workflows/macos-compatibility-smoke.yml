@@ -8,12 +8,6 @@ on:
                 description: Run ID containing a successful ARM64 Release Rehearsal artifact
                 required: true
                 type: string
-    workflow_dispatch:
-        inputs:
-            rehearsal-run-id:
-                description: Run ID containing a successful ARM64 Release Rehearsal artifact
-                required: true
-                type: string
 
 concurrency:
     group: macos-compatibility-${{ inputs.rehearsal-run-id }}

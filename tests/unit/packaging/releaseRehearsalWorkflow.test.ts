@@ -16,20 +16,19 @@ function readReleaseRehearsalWorkflow(): string {
 }
 
 describe("release rehearsal workflow", () => {
-    it("adds optional macOS compatibility without bypassing the release gates", () => {
-        expect.assertions(6);
+    it("tests its own ARM64 artifact after packaging without bypassing the release gates", () => {
+        expect.assertions(7);
         const { jobs } = parseYaml(readReleaseRehearsalWorkflow()) as {
             jobs: Record<string, Record<string, unknown>>;
         };
         const compatibility = jobs["macos-compatibility"];
-        expect(compatibility?.if).toBe(
-            "inputs.compatibility-rehearsal-run-id != ''"
-        );
+        expect(compatibility?.needs).toBe("release-rehearsal");
+        expect(compatibility?.if).toBe("always() && !cancelled()");
         expect(compatibility?.uses).toBe(
             "./.github/workflows/macos-compatibility-smoke.yml"
         );
         expect(compatibility?.with).toEqual({
-            "rehearsal-run-id": "${{ inputs.compatibility-rehearsal-run-id }}",
+            "rehearsal-run-id": "${{ github.run_id }}",
         });
         expect(compatibility?.permissions).toEqual({
             actions: "read",

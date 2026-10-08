@@ -128,11 +128,11 @@ The packaged smoke test requires a fresh completion report after renderer
 initialization, preload IPC, real FIT decoding, and visible map rendering.
 Crashes, signals, timeouts, and missing or stale reports fail the test.
 
-For macOS 27 compatibility, set `compatibility-rehearsal-run-id` on **Release
-Rehearsal** to a prior run containing a successful ARM64 artifact. An additional
-job verifies the original DMG hash and tests that same artifact through direct
-launch and LaunchServices on GitHub's `xcode-27` preview runner. The normal
-release gate and platform matrix remain required.
+After the platform matrix finishes, **Release Rehearsal** automatically checks
+macOS 27 compatibility. It verifies the successful ARM64 artifact's provenance
+and original DMG hash, then tests that same artifact through direct launch and
+LaunchServices on GitHub's `xcode-27` preview runner. The normal release gate and
+platform matrix remain required.
 
 ### 2. Publish
 

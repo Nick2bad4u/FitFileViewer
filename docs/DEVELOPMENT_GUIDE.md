@@ -512,12 +512,11 @@ the resulting distributions into fresh temporary directories and launch those
 copies. macOS DMG copies are signature-verified before launch, and Universal
 checks exercise both architectures.
 
-For an additional macOS 27 compatibility check, set the rehearsal's
-`compatibility-rehearsal-run-id` input to a prior run with a successful ARM64
-artifact. The compatibility job checks the artifact's provenance and original
-DMG hash, then tests that same DMG on GitHub's `xcode-27` preview runner through
-direct launch and LaunchServices. It records the exact OS version and fresh
-smoke evidence. The complete release gate and normal platform matrix still run.
+After the platform matrix finishes, an additional macOS 27 compatibility job
+checks the rehearsal's successful ARM64 artifact provenance and original DMG
+hash. It tests that same DMG on GitHub's `xcode-27` preview runner through direct
+launch and LaunchServices, recording the exact OS version and fresh smoke
+evidence. The complete release gate and normal platform matrix remain required.
 
 The rehearsal packaging step sets `FFV_FORCE_UNSIGNED_PACKAGE=true` and
 `CSC_IDENTITY_AUTO_DISCOVERY=false`, so it strips signing variables before

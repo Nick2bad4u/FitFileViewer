@@ -45,10 +45,7 @@ describe("macOS compatibility workflow", () => {
             step.uses?.startsWith("actions/checkout@")
         );
         const checkout = compatibility.steps[checkoutIndex];
-        expect(Object.keys(workflow.on)).toEqual([
-            "workflow_call",
-            "workflow_dispatch",
-        ]);
+        expect(Object.keys(workflow.on)).toEqual(["workflow_call"]);
         expect(workflow.permissions).toEqual({
             actions: "read",
             contents: "read",
