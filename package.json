@@ -383,7 +383,7 @@
         "typedoc": "^0.28.20",
         "typedoc-config-nick2bad4u": "^2.1.0",
         "typescript": "^6.0.3",
-        "vite": "^8.2.2",
+        "vite": "^8.3.4",
         "vitest": "^4.1.11",
         "yaml": "^2.9.0",
         "yamllint-config-nick2bad4u": "^1.1.1",
