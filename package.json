@@ -344,7 +344,7 @@
         "eslint": "^10.9.1",
         "eslint-config-nick2bad4u": ">=1.2.7 <1.2.8",
         "fast-check": "^4.9.0",
-        "fast-xml-parser": "^5.11.1",
+        "fast-xml-parser": "^5.12.0",
         "git-cliff": "^2.13.1",
         "gitcliff-config-nick2bad4u": "^1.5.0",
         "gitleaks-config-nick2bad4u": "^1.0.5",
